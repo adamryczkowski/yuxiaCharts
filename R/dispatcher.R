@@ -15,25 +15,29 @@ classify_analyses<-function(tododf)
               dispatchers=dispatchers))
 }
 
-classify_row<-function(rownr, tododf){
-  if(tododf$depvar.is_aggregate) {
+classify_cell<-function(rownr, tododf){
+  depvar_prefix<-getOption('relationshipMatrix.property_depvar_prefix')
+  dv_is_aggregate_propname<-paste0(depvar_prefix, getOption('relationshipMatrix.is_aggregate'))
+  if(tododf[[dv_is_aggregate_propname]][[rownr]]) {
     depvartype<-'W'
     depvarwyliczany<-TRUE
   } else {
     depvarwyliczany<-FALSE
-    depvartype <- tododf$depvar.vartype
+    depvartype <- as.character(tododf[[paste0(depvar_prefix, 'vartype')]][[rownr]])
     depvartype <- switch(depvartype,
                          B='F',
                          F='F', 'L'='F', S='F',
                          I='N', N='N', D='D', T='D' )
   }
 
-  if(tododf$indepvar.is_aggregate) {
+  indepvar_prefix<-getOption('relationshipMatrix.property_indepvar_prefix')
+  iv_is_aggregate_propname<-paste0(indepvar_prefix, getOption('relationshipMatrix.is_aggregate'))
+  if(tododf[[iv_is_aggregate_propname]][[rownr]]) {
     indepvartype<-'W'
     indepvarwyliczany<-TRUE
   } else {
     indepvarwyliczany<-FALSE
-    indepvartype <- tododf$indepvar.vartype
+    indepvartype <- as.character(tododf[[paste0(indepvar_prefix, 'vartype')]][[rownr]])
     indepvartype <- switch(indepvartype,
                          B='F',
                          F='F', 'L'='F', S='F',
@@ -73,13 +77,13 @@ classify_row<-function(rownr, tododf){
 }
 
 get_dispatchers<-function() {
-  list(hexplot=hexplot,
+  list(hexplot=hexplot_dispatch,
        boxplot=boxplot_dispatch,
-       crosstab=crosstab,
-       ts_trend=ts_trend,
-       ts_nominal=ts_nominal,
-       dwa_wyliczenia=dwa_wyliczenia,
-       XY_wyliczany=XY_wyliczany,
-       boxplot_wyliczany=boxplot_wyliczany,
-       ts_wyliczany=ts_wyliczany)
+       crosstab=crosstab_dispatch,
+       ts_trend=ts_trend_dispatch,
+       ts_nominal=ts_nominal_dispatch,
+       dwa_wyliczenia=dwa_wyliczenia_dispatch,
+       XY_wyliczany=XY_wyliczany_dispatch,
+       boxplot_wyliczany=boxplot_wyliczany_dispatch,
+       ts_wyliczany=ts_wyliczany_dispatch)
 }
