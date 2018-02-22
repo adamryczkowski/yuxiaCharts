@@ -19,7 +19,7 @@ test_that("Dispatching a sample matrix", {
 
   debugonce(relationshipMatrix::render_matrix)
 
-  relationshipMatrix::render_matrix(cellsdf=cl$tododf, autho="Adam", title="analiza",
+  relationshipMatrix::render_matrix(cellsdf=cl$tododf[1,], autho="Adam", title="analiza",
                                     stats_dispatchers=cl$dispatchers,
                                     report_dispatchers=list(),
                                     report_functions=list(),

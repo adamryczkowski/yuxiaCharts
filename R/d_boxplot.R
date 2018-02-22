@@ -6,7 +6,7 @@ boxplot_dispatch<-function(property_accessor) {
     property_accessor$reverse_vars()
   }
   language<-property_accessor$get_property('language', validator=function(x) checkmate::checkChoice(x, c('EN', 'PL')) )
-  pAcc$get_property('gv.f.o.b')
+  property_accessor$get_property('gv.f.o.b')
   property_accessor$set_report_dispatcher(boxplot_functions)
   db<-property_accessor$done_discovery()
   return(NULL)
@@ -14,22 +14,23 @@ boxplot_dispatch<-function(property_accessor) {
 
 
 boxplot_functions<-function(property_accessor, statistics) {
+  property_accessor$done_discovery()
   out_funs<-list(anovas=function(pAcc, statistics, chapter) boxplot_comments(pAcc, chapter),
                  errorpoints=function(pAcc, statistics, chapter) boxplot(pAcc, do_violinplot=FALSE, chapter),
                  violinplot=function(pAcc, statistics, chapter) boxplot(pAcc, do_violinplot=TRUE, chapter))
 }
 
-boxplot_reports<-function(property_accessor, statistics) {
-  browser()
-}
 
 boxplot_comments<-function(pAcc, doc) {
-  browser()
+#  browser()
   db_obj<-pAcc$serve_db()
-  dt<-db_obj$chunkdf_ivdvgv()
-  zn<-db_obj$indepvar
-  zz<-db_obj$depvar
   language<-pAcc$get_property('language')
+  db_obj$depvar_label()
+  db_obj$indepvar_label()
+  db_obj$groupvar_label()
+  db_obj$filter_label()
+  pAcc$done_discovery()
+  dt<-db_obj$chunkdf_ivdvgv()
 
   #  labs <- yuxia::get_labels(zz=zz, zn=zn, groupby = groupby, dt=dt, filtr = filtr)
   if(db_obj$is_grouped()) {
@@ -128,12 +129,14 @@ boxplot_comments<-function(pAcc, doc) {
 
 boxplot<-function(pAcc, do_violinplot=FALSE, chapter, remove_outliers = FALSE){
   db_obj<-pAcc$serve_db()
-  dt<-db_obj$chunkdf_ivdvgv()
-  zn<-db_obj$indepvar
-  zz<-db_obj$depvar
+  db_obj$depvar_label()
+  db_obj$indepvar_label()
+  db_obj$groupvar_label()
+  db_obj$filter_label()
+  pAcc$get_property('gv.f.o.b')
   language<-pAcc$get_property('language')
+#  browser()
 
-  browser()
 
   #Mam zbiór dt. Najpierw filtr. Potem wybieram zmienne
 
@@ -180,18 +183,17 @@ boxplot<-function(pAcc, do_violinplot=FALSE, chapter, remove_outliers = FALSE){
     dfsrc <- mydt %>% as_tibble %>% group_by( iv, gv) %>%
       summarise(m=mean(dv, na.rm=TRUE), sd=sd(dv, na.rm=TRUE), n=n(), ci=qt(0.975,df=n-1)*sd/sqrt(n),
                 cil = m - ci, ciu = m + ci)
-    h<-ggplot(data = dfsrc, mapping = aes_string(y = 'm', x = iv))
+    h<-ggplot(data = dfsrc, mapping = aes(y = m, x = iv))
 
   } else {
-    h<-ggplot(data = mydt, mapping = aes_string(y = dv, x = iv))
+    h<-ggplot(data = mydt, mapping = aes(y = dv, x = iv))
   }
 
 
   if(db_obj$is_grouped()) {
-    h<-h + aes_string(fill = gv, colour=gv)
-    browser()
-    pAcc$get_property('gv.f.o.b')
-    if(identical(attr(dt[[gv]],'f.o.b'),2) )
+    h<-h + aes(fill = gv, colour=gv)
+
+    if(identical(pAcc$get_property('gv.f.o.b') ,2) )
     {
       h<-h+scale_fill_brewer(palette="Blues") + scale_color_grey(start = 0.5, end=0)
     } else {
@@ -213,7 +215,7 @@ boxplot<-function(pAcc, do_violinplot=FALSE, chapter, remove_outliers = FALSE){
 
   h <- h + ylab(db_obj$depvar_label(flag_md = FALSE)) + xlab(db_obj$indepvar_label(flag_md = FALSE))
   if(db_obj$is_grouped()){
-    h <- h + labs(fill=gv, color=gv)
+    h <- h + labs(fill='gv', color='gv')
     grlab<-db_obj$groupvar_label(flag_md = FALSE)
     if (nchar(grlab)>40){
       h<-h+theme(legend.position="bottom",legend.direction="vertical")
@@ -245,7 +247,7 @@ boxplot<-function(pAcc, do_violinplot=FALSE, chapter, remove_outliers = FALSE){
   quant_min = quantile(dt$dv, probs=0.05, na.rm = TRUE)
   quant_max = quantile(dt$dv, probs=0.95, na.rm = TRUE)
   if(db_obj$is_grouped()) {
-    df <- as.data.frame(mydt) %>% group_by(iv, gr) %>%
+    df <- as.data.frame(mydt) %>% group_by(iv, gv) %>%
       summarise( m = mean(dv, na.rm=TRUE),
                  quant_hi  = quantile(dv, probs=0.625, na.rm = TRUE),
                  quant_lo  = quantile(dv, probs=0.375, na.rm = TRUE),
@@ -286,6 +288,7 @@ boxplot<-function(pAcc, do_violinplot=FALSE, chapter, remove_outliers = FALSE){
   } else {
     tags<-c(tags, 'mean_boxplot')
   }
+#  browser()
   chart_hash<-chapter$insert_chart(caption = label, gg = h, tags = tags)
   if(db_obj$is_grouped()) {
     mycols <- db_obj$groupvar_label(flag_md = FALSE)
@@ -321,10 +324,10 @@ boxplot<-function(pAcc, do_violinplot=FALSE, chapter, remove_outliers = FALSE){
     tab <- tab2  %>% mutate(n_txt = danesurowe::report_integer(n),
                             mean_txt = danesurowe::report_value_with_error(mean, ci),
                             sd_txt = danesurowe::report_value_with_error(sd, sd/(2*sqrt(n)), flag_insert_error = FALSE)) %>%
-      select(gr, iv, n_txt, mean_txt, sd_txt)
+      select(gv, iv, n_txt, mean_txt, sd_txt)
     if(language=='PL') {
       mycols <- c(mycols, db_obj$indepvar_label(flag_md = FALSE),"N", "Średnia ± szerokość 95% przedz. ufności", "SD")
-      tablabel <- paste0("Tabela ze statystykami opisowymi użytymi w wykresie @fig:", hash,
+      tablabel <- paste0("Tabela ze statystykami opisowymi użytymi w wykresie @fig:", chart_hash,
                          '. Średnia została podana razem z szerokowścią 95% przedziału ',
                          'ufności i zaokrąglona do 2 miejsce znaczących. ',
                          'Odchylenie standardowe zostało zaokrąglone do 2 miejsc ',
