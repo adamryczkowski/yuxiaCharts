@@ -4,7 +4,7 @@ source('tests/aggregates.R')
 source('tests/load_dt.R')
 
 library(testthat)
-options(warn=2)
+options(warn=1)
 context("Calculating a cell")
 
 test_that("Dispatching a sample matrix", {
@@ -17,15 +17,25 @@ test_that("Dispatching a sample matrix", {
   #debugonce(recognize_sheet_format)
   cl<-classify_analyses(m)
 
-  debugonce(relationshipMatrix::render_matrix)
+  #debugonce(relationshipMatrix::render_matrix)
 
-  relationshipMatrix::render_matrix(cellsdf=cl$tododf[1,], autho="Adam", title="analiza",
+  doc<-relationshipMatrix::render_matrix(cellsdf=cl$tododf[13,], author="Adam", title="analiza",
                                     stats_dispatchers=cl$dispatchers,
                                     report_dispatchers=list(),
                                     report_functions=list(),
                                     aggregates=aggrt, filters=get_filters(), df_task=dt)
   #  debugonce(relationshipMatrix:::do_cell)
-  relationshipMatrix:::do_cell(cl$tododf, stats_dispatchers=cl$dispatchers,
+
+  pandoc<-pander::Pandoc$new()
+  #  debugonce(doc$render)
+  doc$pre_render()
+  doc$render(pandoc)
+  unlink('/tmp/cos.docx')
+  unlink('/tmp/cos.md')
+  save_report(pandoc, filename = '/tmp/cos')
+
+
+  relationshipMatrix:::do_cell(cl$tododf[13,], stats_dispatchers=cl$dispatchers,
                                report_dispatchers=list(),
                                report_functions=list(),
                                aggregates=aggrt, filters=get_filters(), cellnr=1L, df_task=dt)

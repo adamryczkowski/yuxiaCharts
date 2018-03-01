@@ -1,14 +1,14 @@
-boxplot_dispatch<-function(property_accessor) {
+boxplot_dispatch<-function(pAcc) {
 #  browser()
-  db_obj<-property_accessor$serve_db()
-  class_dep<-property_accessor$get_property('dv.vartype')
+  db_obj<-pAcc$serve_db()
+  class_dep<-pAcc$get_property('dv.vartype')
   if (class_dep=='F') {
-    property_accessor$reverse_vars()
+    pAcc$reverse_vars()
   }
-  language<-property_accessor$get_property('language', validator=function(x) checkmate::checkChoice(x, c('EN', 'PL')) )
-  property_accessor$get_property('gv.f.o.b')
-  property_accessor$set_report_dispatcher(boxplot_functions)
-  db<-property_accessor$done_discovery()
+  language<-pAcc$get_property('language', validator=function(x) checkmate::checkChoice(x, c('EN', 'PL')) )
+  pAcc$get_property('gv.f.o.b')
+  pAcc$set_report_dispatcher(boxplot_functions)
+  db<-pAcc$done_discovery()
   return(NULL)
 }
 
@@ -76,17 +76,17 @@ boxplot_comments<-function(pAcc, doc) {
 
     if(language=='PL') {
       colnames(mod_txt) <- c(db_obj$groupvar_label(flag_md = TRUE), "Średnia suma kwadratów zn", "Średnia suma kwadratów reszt", "Statystyka testowa", "Istotność")
-      tablabel <- paste0("Wyniki analizy wariancji zmiennej zależnej ", db_obj$depvar_label(flag_md = TRUE), " efektu zmiennej ",
-                         db_obj$indepvar_label(flag_md = TRUE), " w rozbiciu na ", db_obj$groupvar_label(flag_md = TRUE), ". ")
+      tablabel <- paste0("Wyniki analizy wariancji zmiennej zależnej ", db_obj$depvar_label(flag_md = TRUE), ". Policzono dla tej zmiennej efekt zmiennej niezależnej ",
+                         db_obj$indepvar_label(flag_md = TRUE), ", oddzielnie dla każdego poziomu ", db_obj$groupvar_label(flag_md = TRUE), ". ")
       if (db_obj$filterstring!='') {
-        tablabel <- paste0(tablabel, "Obliczenia zostały wykonane na ", db_obj$filter_label(flag_md = TRUE), ". ")
+        tablabel <- paste0(tablabel, "Obliczenia zostały wykonane na zbiorze obserwacji ", db_obj$filter_label(flag_md = TRUE), ". ")
       }
     } else if (language=='EN') {
       colnames(mod_txt) <- c(db_obj$groupvar_label(), "Mean sum of squares for d.v.", "Mean sum of squares for residuals", "Test statistic", "P-value")
       browser()
     }
 
-    doc$insert_table(caption=tablabel, table_df=mod_txt, c('anova', 'statistics'))
+    doc$insert_table(caption=tablabel, table_df=mod_txt, c('anova', 'statistics'), flag_header_in_md = TRUE)
 #    ret<-add_simple_table(tab=mod_txt, caption = tablabel, tab_label = tab_label)
 
 
@@ -117,8 +117,9 @@ boxplot_comments<-function(pAcc, doc) {
                       "Wariancja"=c(rap1$`Mean Sq`, NA),
                       "F"=c(rap1$`F value`, NA),
                       "Istotność"=c(rap1$`Pr(>F)`,NA))
-      tablabel <- paste0("Wyniki analizy wariancji zmiennej zależnej ", zzlab, " efektu zmiennej ", znlab, ". Obliczenia zostały na: ", labs$filter_lab)
-      doc$insert_table(caption=tablabel, table_df=tab, c('anova', 'statistics'))
+      tablabel <- paste0("Wyniki analizy wariancji zmiennej zależnej ", zzlab, ". Policzono dla tej zmiennej efekt zmiennej niezależnej ", znlab,
+                         ". Obliczenia zostały na zbiorze obserwacji ", labs$filter_lab)
+      doc$insert_table(caption=tablabel, table_df=tab, c('anova', 'statistics'), flag_header_in_md=TRUE)
     } else {
       browser()
     }
@@ -135,6 +136,12 @@ boxplot<-function(pAcc, do_violinplot=FALSE, chapter, remove_outliers = FALSE){
   db_obj$filter_label()
   pAcc$get_property('gv.f.o.b')
   language<-pAcc$get_property('language')
+  group_first<-pAcc$get_property('table_group_first')
+  if(group_first=='') {
+    group_first<-FALSE
+  } else {
+    group_first<-as.logical(group_first)
+  }
 #  browser()
 
 
@@ -173,7 +180,7 @@ boxplot<-function(pAcc, do_violinplot=FALSE, chapter, remove_outliers = FALSE){
       }
       label <- paste0(label, "Analizę wykonano na zbiorze: ", db_obj$filter_label(flag_md = TRUE), ", ",
                       danesurowe::liczebnik(nrow(mydt), "przypadek", "przypadki", "przypadków"), '. ')
-      label <- paste0(label, "W polach wypisano liczność każdej z grup a wąsami oznaczono 95% przedział ufności.")
+      label <- paste0(label, "W polach wypisano liczność każdej z grup, a wąsami oznaczono 95% przedział ufności.")
     } else {
       browser()
     }
@@ -181,7 +188,7 @@ boxplot<-function(pAcc, do_violinplot=FALSE, chapter, remove_outliers = FALSE){
 
   if(!do_violinplot) {
     dfsrc <- mydt %>% as_tibble %>% group_by( iv, gv) %>%
-      summarise(m=mean(dv, na.rm=TRUE), sd=sd(dv, na.rm=TRUE), n=n(), ci=qt(0.975,df=n-1)*sd/sqrt(n),
+      summarise(m=mean(dv, na.rm=TRUE), sd=suppressWarnings(sd(dv, na.rm=TRUE)), n=n(), ci=suppressWarnings(qt(0.975,df=n-1)*sd/sqrt(n)),
                 cil = m - ci, ciu = m + ci)
     h<-ggplot(data = dfsrc, mapping = aes(y = m, x = iv))
 
@@ -199,6 +206,7 @@ boxplot<-function(pAcc, do_violinplot=FALSE, chapter, remove_outliers = FALSE){
     } else {
       h<-h+scale_fill_brewer(palette="Set2") + scale_color_brewer(palette="Dark2")
     }
+
   }
 
   if(do_violinplot) {
@@ -215,8 +223,8 @@ boxplot<-function(pAcc, do_violinplot=FALSE, chapter, remove_outliers = FALSE){
 
   h <- h + ylab(db_obj$depvar_label(flag_md = FALSE)) + xlab(db_obj$indepvar_label(flag_md = FALSE))
   if(db_obj$is_grouped()){
-    h <- h + labs(fill='gv', color='gv')
     grlab<-db_obj$groupvar_label(flag_md = FALSE)
+    h <- h + labs(fill=grlab, color=grlab)
     if (nchar(grlab)>40){
       h<-h+theme(legend.position="bottom",legend.direction="vertical")
     } else if (nchar(grlab)>20){
@@ -284,12 +292,13 @@ boxplot<-function(pAcc, do_violinplot=FALSE, chapter, remove_outliers = FALSE){
   }
   tags<-'ggplot'
   if(do_violinplot) {
-    tags<-c(tags, 'violinplot')
+    chart_prefix<-'violinplot'
   } else {
-    tags<-c(tags, 'mean_boxplot')
+    chart_prefix<-'mean_boxplot'
   }
-#  browser()
-  chart_hash<-chapter$insert_chart(caption = label, gg = h, tags = tags)
+  tags<-c(tags, chart_prefix)
+  #  browser()
+  chart_hash<-chapter$insert_chart(caption = label, gg = h, tags = tags, chart_prefix = chart_prefix)
   if(db_obj$is_grouped()) {
     mycols <- db_obj$groupvar_label(flag_md = FALSE)
     tab<-mydt %>%  data.frame() %>% group_by(gv, iv)
@@ -297,23 +306,32 @@ boxplot<-function(pAcc, do_violinplot=FALSE, chapter, remove_outliers = FALSE){
     mycols <- character(0)
     tab<-mydt %>%  data.frame() %>% group_by(iv)
   }
-  tab2<-tab %>% summarize(mean = mean(dv), sd = sd(dv), n=n(),
-                          ci=qt(0.975,df=n-1)*sd/sqrt(n))
+  mycols<-c(mycols, db_obj$indepvar_label(flag_md = FALSE))
+  tab2<-tab %>% summarize(mean = mean(dv), sd = suppressWarnings(sd(dv)), n=n(),
+                          ci=suppressWarnings(qt(0.975,df=n-1)*sd/sqrt(n)))
 
   if(do_violinplot) {
-    tab1<-tab %>%  do(cbind(broom::tidy(quantile(.$dv, probs = c(0.025, 0.25, 0.5, 0.75, 0.975))) %>% tidyr::spread(key = names, value = x)))
+    tab1<-tab %>%  do(cbind(broom::tidy(quantile(.$dv, probs = c(0.025, 0.25, 0.5, 0.75, 0.975))) %>%
+                              tidyr::spread(key = names, value = x)))
     danesurowe::copy_dt_attributes(tab2, tab1)
     tab <- left_join(tab1, tab2, by = c('gv', 'iv')) %>%
       mutate(n_txt = danesurowe::report_integer(n),
              mean = danesurowe::report_value_with_error(mean, ci, flag_insert_error=FALSE),
              sd = danesurowe::report_value_with_error(sd, sd/(2*sqrt(n)), flag_insert_error = FALSE))
     if(db_obj$is_grouped()) {
-      tab<-tab %>% select(gv, iv, n, contains('%'), mean, sd)
+      #browser()
+      if(group_first) {
+        #browser()
+        tab<-tab %>% select(gv, iv, n_txt, contains('%'), mean, sd)
+      } else {
+        tab<-tab %>% select(iv, gv, n_txt, contains('%'), mean, sd) %>% arrange(iv, gv)
+        mycols<-mycols[c(2,1)]
+      }
     } else {
       tab<-tab %>% select(iv, n, contains('%'), mean, sd)
     }
     if(language=='PL') {
-      mycols <- c(mycols, db_obj$indepvar_label(flag_md = FALSE) , "N", "$Q_{2,5\\%}$", "Dolny kwartyl", "Mediana", "Górny kwartyl", "$Q_{97,5\\%}$", "Średnia", "SD")
+      mycols <- c(mycols , "N", "$Q_{2,5\\%}$", "Dolny kwartyl", "Mediana", "Górny kwartyl", "$Q_{97,5\\%}$", "Średnia", "SD")
       tablabel <- paste0("Tabela ze statystykami pozycyjnymi użytymi w wykresie @fig:", chart_hash,
                          '. Kwantyle zostały użyte przy pomocy „metody nr 7”, używanej ',
                          'domyślnie dla zmiennych ciągłych w programach S i R. ')
@@ -323,14 +341,25 @@ boxplot<-function(pAcc, do_violinplot=FALSE, chapter, remove_outliers = FALSE){
   } else {
     tab <- tab2  %>% mutate(n_txt = danesurowe::report_integer(n),
                             mean_txt = danesurowe::report_value_with_error(mean, ci),
-                            sd_txt = danesurowe::report_value_with_error(sd, sd/(2*sqrt(n)), flag_insert_error = FALSE)) %>%
-      select(gv, iv, n_txt, mean_txt, sd_txt)
+                            sd_txt = danesurowe::report_value_with_error(sd, sd/(2*sqrt(n)), flag_insert_error = FALSE))
+    if(db_obj$is_grouped()) {
+      #browser()
+      if(group_first) {
+        tab<-tab %>% select(gv, iv, n_txt, mean_txt, sd_txt)
+      } else {
+        tab<-tab %>% select(iv, gv, n_txt, mean_txt, sd_txt) %>% arrange(iv, gv)
+        mycols<-mycols[c(2,1)]
+      }
+    } else {
+      tab<-tab %>% select(iv, n_txt, mean_txt, sd_txt)
+    }
+
     if(language=='PL') {
-      mycols <- c(mycols, db_obj$indepvar_label(flag_md = FALSE),"N", "Średnia ± szerokość 95% przedz. ufności", "SD")
+      mycols <- c(mycols,"N", "Średnia ± szerokość 95% przedz. ufności", "SD")
       tablabel <- paste0("Tabela ze statystykami opisowymi użytymi w wykresie @fig:", chart_hash,
-                         '. Średnia została podana razem z szerokowścią 95% przedziału ',
-                         'ufności i zaokrąglona do 2 miejsce znaczących. ',
-                         'Odchylenie standardowe zostało zaokrąglone do 2 miejsc ',
+                         '. Średnia została podana razem z szerokością 95% przedziału ',
+                         'ufności i zaokrąglona do 2 miejsc znaczących, ',
+                         'odchylenie standardowe zostało zaokrąglone do 2 miejsc ',
                          'znaczących swojego błędu standardowego. ')
     } else {
       browser()
@@ -343,6 +372,6 @@ boxplot<-function(pAcc, do_violinplot=FALSE, chapter, remove_outliers = FALSE){
   } else {
     tags<-c(tags, 'mean_boxplot')
   }
-  chapter$insert_table(caption = tablabel, table_df = tab, tags = tags)
+  chapter$insert_table(caption = tablabel, table_df = tab, tags = tags, flag_header_in_md = TRUE)
   return(chapter)
 }

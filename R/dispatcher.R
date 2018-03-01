@@ -84,6 +84,6 @@ get_dispatchers<-function() {
        ts_nominal=ts_nominal_dispatch,
        dwa_wyliczenia=dwa_wyliczenia_dispatch,
        XY_wyliczany=XY_wyliczany_dispatch,
-       boxplot_wyliczany=boxplot_wyliczany_dispatch,
+       boxplot_wyliczany=boxplot_aggregate_dispatch,
        ts_wyliczany=ts_wyliczany_dispatch)
 }

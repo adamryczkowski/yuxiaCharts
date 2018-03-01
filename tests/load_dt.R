@@ -4,7 +4,8 @@ loaddt<-function() {
       return(dt)
     }
   }
-  dt<-readRDS('tests/dt.rds')
+  dt<-readRDS('/home/Adama-docs/Adam/MyDocs/Statystyka/Aktywne analizy/Yu Xia/yuxia-local/cache/dt_lgasga.rds')
+#  dt<-readRDS('tests/dt.rds')
   return(dt)
 }
 
