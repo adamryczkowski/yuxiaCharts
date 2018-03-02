@@ -18,8 +18,8 @@ test_that("Dispatching a sample matrix", {
   cl<-classify_analyses(m)
 
   #debugonce(relationshipMatrix::render_matrix)
-
-  doc<-relationshipMatrix::render_matrix(cellsdf=cl$tododf[13,], author="Adam", title="analiza",
+#1:53
+  doc<-relationshipMatrix::render_matrix(cellsdf=cl$tododf[1:53,], author="Adam", title="analiza",
                                     stats_dispatchers=cl$dispatchers,
                                     report_dispatchers=list(),
                                     report_functions=list(),

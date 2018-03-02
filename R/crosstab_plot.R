@@ -1,5 +1,5 @@
 crosstab_plot<-function(pAcc, statistics, chapter){
-  browser()
+#  browser()
   db_obj<-pAcc$serve_db()
   flag_force_logit = pAcc$get_property('crosstab.force_logit')
   flag_gr_after_indep = pAcc$get_property('table_group_first')
@@ -90,7 +90,13 @@ crosstab_plot<-function(pAcc, statistics, chapter){
     chapter$discard_changes<-tmp
     caption<- paste0("Wartości użyte do wykreślenia wykresu @fig:", chart_hash, " i @fig:", chart_hash2, ". ")
 
-    tab<-mycrosstabs(df=dt, zz='dv', zn='iv', groupby='gv', group_lab = db_obj$groupvar_label(TRUE), caption=caption,
+    if(db_obj$is_grouped()) {
+      groupby<-'gv'
+    } else {
+      groupby<-NULL
+    }
+
+    tab<-mycrosstabs(df=dt, zz='dv', zn='iv', groupby=groupby, group_lab = db_obj$groupvar_label(TRUE), caption=caption,
                      flag_include_zz_percent=TRUE, flag_include_zn_percent=FALSE, flag_include_percent=TRUE)
     chapter$insert_table(caption=caption, table_df=tab, tags=c('mozaic_plot', 'crosstab'))
 

@@ -1,8 +1,8 @@
 crosstab_dispatch<-function(pAcc) {
-#  browser()
+  #browser()
   pAcc$set_report_dispatcher(crosstab_reports)
   db_obj<-pAcc$serve_db()
-  bootstrap_n<-pAcc$get_property('logit.bootstrap_n', validator = validate_int, default = 500)
+  bootstrap_n<-pAcc$get_property('logit.bootstrap_n', validator = validate_int, default = 10000)
 
   dvlevels<-db_obj$dvlevels(TRUE)
   ivlevels<-db_obj$ivlevels(TRUE)
@@ -51,7 +51,7 @@ crosstab_dispatch<-function(pAcc) {
 
   logit_df1<-NULL
   logit_df2<-NULL
-
+  freqdf<-mydt
   if(flag_logit || flag_logit_rev ){
     get_quantiles<-function(dt, bootstrap_n, varname) {
       #    browser()
@@ -67,7 +67,8 @@ crosstab_dispatch<-function(pAcc) {
       return(ans)
     }
 
-
+    #browser()
+    mydt<-as.data.table(db_obj$chunkdf_ivdvgv())
     if (flag_logit) {
       if(db_obj$is_grouped()) {
         logit_df1<-mydt[, as.data.table(get_quantiles(.SD, bootstrap_n=bootstrap_n, varname='dv')), by = c('gv', 'iv')]
@@ -76,9 +77,9 @@ crosstab_dispatch<-function(pAcc) {
       }
       logit_df1 <- data.table(logit_df1 %>% mutate(m = Vectorize(car::logit, vectorize.args = 'p')(c((1+npos)/(npos+nneg+2)), adjust=FALSE)))
       danesurowe::copy_dt_attributes(mydt, logit_df1)
-      setattr(logit_df1$m,'label',Hmisc::label(mydt[[zz]]))
-      setattr(logit_df1$m, 'level1', danesurowe::GetLabels(factor(mydt[[zz]]))[[2]])
-      setattr(logit_df1$m, 'level0', danesurowe::GetLabels(factor(mydt[[zz]]))[[1]])
+      setattr(logit_df1$m,'label',Hmisc::label(mydt$iv))
+      setattr(logit_df1$m, 'level1', danesurowe::GetLabels(factor(mydt$dv))[[2]])
+      setattr(logit_df1$m, 'level0', danesurowe::GetLabels(factor(mydt$dv))[[1]])
     }
     if (flag_logit_rev) {
       if(db_obj$is_grouped()) {
@@ -88,12 +89,13 @@ crosstab_dispatch<-function(pAcc) {
       }
       logit_df2 <- data.table(logit_df2 %>% mutate(m = Vectorize(car::logit, vectorize.args = 'p')(c((1+npos)/(npos+nneg+2)), adjust=FALSE)))
       danesurowe::copy_dt_attributes(mydt, logit_df2)
-      setattr(logit_df2$m,'label',Hmisc::label(mydt[[zn]]))
-      setattr(logit_df2$m, 'level1', danesurowe::GetLabels(factor(mydt[[zz]]))[[2]])
-      setattr(logit_df2$m, 'level0', danesurowe::GetLabels(factor(mydt[[zz]]))[[1]])
+      setattr(logit_df2$m,'label',Hmisc::label(mydt$iv))
+      setattr(logit_df2$m, 'level1', danesurowe::GetLabels(factor(mydt$iv))[[2]])
+      setattr(logit_df2$m, 'level0', danesurowe::GetLabels(factor(mydt$iv))[[1]])
+      data.table::setnames(logit_df2, 'dv', 'iv')
     }
   }
-  return(list(freqdf=mydt, logit_df1=logit_df1, logit_df2=logit_df2))
+  return(list(freqdf=freqdf, logit_df1=logit_df1, logit_df2=logit_df2))
 }
 
 logit_beta_quantiles<-function(a,b,bootstrap_n=10000, quantiles = c(0.025,0.25,0.5,0.75,0.975)) {
@@ -102,8 +104,12 @@ logit_beta_quantiles<-function(a,b,bootstrap_n=10000, quantiles = c(0.025,0.25,0
   return(c(qs, sd=sd(s)))
 }
 
+mydistinv<-function(a,b,p) {
+  log(-1+1/(1-zipfR::Rbeta.inv(p, a, b)))
+}
+
 crosstab_reports<-function(pAcc, statistics) {
-  browser()
+#  browser()
   db_obj<-pAcc$serve_db()
 
   dvlevels<-db_obj$dvlevels(TRUE)
@@ -145,6 +151,7 @@ crosstab_reports<-function(pAcc, statistics) {
   if(!is.null(statistics$logit_df1)) {
     plots<-c(plots, list(
       plot_logit=function(pAcc, statistics, chapter) {
+        pAcc$put_property('logit.rev', FALSE)
         plot_logit(pAcc, statistics$logit_df1, chapter)
       }
     ))
@@ -154,6 +161,7 @@ crosstab_reports<-function(pAcc, statistics) {
     plots<-c(plots, list(
       plot_logit=function(pAcc, statistics, chapter) {
         pAcc$reverse_vars()
+        pAcc$put_property('logit.rev', TRUE)
         plot_logit(pAcc, statistics$logit_df2, chapter)
       }
     ))

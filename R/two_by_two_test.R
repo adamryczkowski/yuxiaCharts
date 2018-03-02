@@ -1,5 +1,5 @@
 two_by_two_test<-function(pAcc, statistics, chapter) {
-  browser()
+  #browser()
   db_obj<-pAcc$serve_db()
   flag_force_logit = pAcc$get_property('crosstab.force_logit')
   flag_gr_after_indep = pAcc$get_property('table_group_first')
@@ -29,13 +29,15 @@ two_by_two_test<-function(pAcc, statistics, chapter) {
 
   if(cat_fob %in% c('11', '13', '31', '33')) {
     two_by_two_chi2_test(pAcc, statistics, chapter)
-  } else if (cat_fob %in% c('12', '32')) {
+  } else if (cat_fob %in% c('32')) {
     pAcc$reverse_vars()
     two_by_two_U_test(pAcc, statistics, chapter)
-  } else if (cat_fob %in% c('21', '23')) {
+  } else if (cat_fob %in% c('23')) {
     two_by_two_U_test(pAcc, statistics, chapter)
   } else if (cat_fob == '22') {
     two_by_two_rho_test(pAcc, statistics, chapter)
+  } else if (cat_fob %in% c('12', '21')) {
+    #browser() #This test needs to be implemented
   } else {
     browser()
   }
@@ -43,7 +45,7 @@ two_by_two_test<-function(pAcc, statistics, chapter) {
 }
 
 two_by_two_chi2_test<-function(pAcc, statistics, chapter) {
-  browser()
+  #browser()
   db_obj<-pAcc$serve_db()
   language<-pAcc$get_property('language')
 
@@ -128,7 +130,7 @@ two_by_two_chi2_test<-function(pAcc, statistics, chapter) {
 
 
 two_by_two_U_test<-function(pAcc, statistics, chapter) {
-  browser()
+#  browser()
   db_obj<-pAcc$serve_db()
   language<-pAcc$get_property('language')
 
@@ -154,10 +156,18 @@ two_by_two_U_test<-function(pAcc, statistics, chapter) {
       )
 
     } else {
-      return(
-        df %>% mutate_all(as.integer) %>%  group_by(dv) %>% tidyr::nest() %>%
+      do_1test<-function(iv, dv) {
+        ans<-tryCatch(
+          broom::tidy(wilcox.test(x = as.integer(df$iv), y = as.integer(df$dv), conf.int = TRUE)),
+          error=function(e) tibble(estimate=NA, statistic=NA, p.value=NA, conf.low=NA, conf.high=NA, method=NA, alternative=NA)
+        )
+        return(ans)
+      }
+
+      ans <- tryCatch(
+        df %>% na.omit() %>% mutate_all(as.integer) %>%  group_by(dv) %>% tidyr::nest() %>%
           tidyr::spread_(key_col='dv', value_col='data') %>%
-          do(cbind(broom::tidy(suppressWarnings(wilcox.test(unlist(.[[1]]), unlist(.[[2]]), conf.int = TRUE))),
+          do(cbind(do_1test(.[[1]], .[[2]]),
                    data.frame(n1=nrow(.[[1]][[1]]), n2=nrow(.[[2]][[1]]))
           )) %>%
           mutate(statistic_txt=danesurowe::report_single_value(statistic),
@@ -167,8 +177,13 @@ two_by_two_U_test<-function(pAcc, statistics, chapter) {
                  n1_txt = danesurowe::report_integer(n1),
                  n2_txt = danesurowe::report_integer(n2),
                  pXgtY_txt = danesurowe::report_single_value(pXgtY)
-          ) %>% select(-method, -alternative)
+          ) %>% select(-method, -alternative),
+        error=function(e) tibble(estimate=NA, statistic=NA, p.value=NA, conf.low=NA, conf.high=NA, n1=0, n2=0,
+                                 statistic_txt='-', pvalue_txt='-', estimate_txt='-', pXgtY=NA, n1_txt=0, n2_txt=0,
+                                 pXgtY_txt=NA)
       )
+
+      return(ans)
     }
   }
   if(db_obj$is_grouped()){
@@ -176,7 +191,7 @@ two_by_two_U_test<-function(pAcc, statistics, chapter) {
     #    grs<-mydt %>% data.frame() %>% mutate_all(as.integer) %>%  group_by_(.dots=c(groupby)) %>% tidyr::nest()
     grs<-mydt %>% data.frame() %>% group_by(gv) %>% tidyr::nest()
 
-
+    #browser()
     tab_df <- grs %>% group_by(gv) %>%  do(do_test(.$data))
   } else {
     tab_df <-do_test(list(mydt%>%data.frame()))
@@ -201,7 +216,7 @@ two_by_two_U_test<-function(pAcc, statistics, chapter) {
 }
 
 two_by_two_rho_test<-function(pAcc, statistics, chapter) {
-  browser()
+  #browser()
   db_obj<-pAcc$serve_db()
   language<-pAcc$get_property('language')
   db_obj$groupvar_label()
@@ -212,13 +227,23 @@ two_by_two_rho_test<-function(pAcc, statistics, chapter) {
   mydt<-db_obj$chunkdf_ivdvgv()
 
   if (db_obj$is_grouped()){
-    browser()
-    table<-mydt %>%  group_by(gv) %>% do(broom::tidy(Hmisc::rcorr(.$dv, .$iv, type='spearman')))
+    #browser()
+    do_test<-function(dv, iv) {
+      ans<-tryCatch(
+        broom::tidy(Hmisc::rcorr(dv, iv, type='spearman')),
+        error=function(e) {
+          data.frame(column1=NA, column2=NA, estimate=NA_real_, n=length(dv), p.value=NA_real_)
+        }
+      )
+      return(ans)
+    }
+    table<-mydt %>%  group_by(gv) %>% do(do_test(.$dv, .$iv))
+    #table<-mydt %>%  group_by(gv) %>% do(broom::tidy(Hmisc::rcorr(.$dv, .$iv, type='spearman')))
     tab <- table %>% data.frame() %>% mutate(
       n=format(n, digits=0, big.mark='\uA0'),
       estimate=format(estimate, scientific=FALSE, digits=0, nsmall=2, big.mark='\uA0'),
       p.value=danesurowe::report_pvalue_long(p.value)) %>%
-      select_(.dots=c(groupby, 'n', 'estimate', 'p.value'))
+      select(gv, n, estimate, p.value)
     if(language=='PL') {
       colnames(tab) <- c(db_obj$groupvar_label(), 'Wielkość próby', 'ρ Spearmana', 'Istotność')
       setattr(tab, 'caption', paste0(
@@ -249,6 +274,7 @@ two_by_two_rho_test<-function(pAcc, statistics, chapter) {
                     '. Uzyskano wartość statystyki korelacji ρ(', table$n-2, ') równą ',
                     danesurowe::report_single_value(table$estimate),
                     '; ', danesurowe::report_pvalue_long(table$p.value),'.\n\n')
+      chapter$insert_paragraph(msg, tags='spearman_test')
     } else if(language=='EN') {
       browser()
     } else {
