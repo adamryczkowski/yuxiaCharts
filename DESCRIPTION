@@ -12,7 +12,8 @@ LazyData: true
 Imports: 
 	  ggplot2,
 	  dplyr,
-	  purrr
+	  purrr,
+	  zipfR
 Depends:
     data.table
 Remotes:
