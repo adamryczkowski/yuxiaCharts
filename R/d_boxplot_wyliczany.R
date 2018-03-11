@@ -2,7 +2,8 @@ boxplot_aggregate_dispatch<-function(pAcc) {
   db_obj<-pAcc$serve_db()
 
   if(db_obj$is_indepvar_aggregate()) {
-    db_obj$reverse_vars()
+    pAcc$reverse_vars()
+    db_obj<-pAcc$serve_db()
   }
 
   bootstrap_n<-pAcc$get_property('aggregate_bootstrap_n')
