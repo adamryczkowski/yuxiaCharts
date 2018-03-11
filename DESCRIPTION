@@ -10,11 +10,11 @@ License: What license is it under?
 Encoding: UTF-8
 LazyData: true
 Imports: 
-Depends:
-    data.table,
-	  dplyr,
 	  ggplot2,
+	  dplyr,
 	  purrr
+Depends:
+    data.table
 Remotes:
 	 adamryczkowski/danesurowe,
 	 adamryczkowski/relationshipMatrix
