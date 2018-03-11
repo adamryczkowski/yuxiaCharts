@@ -13,9 +13,12 @@ Imports:
 	  ggplot2,
 	  dplyr,
 	  purrr,
-	  zipfR
+	  zipfR,
+	  lsr,
+	  ggrepel
 Depends:
-    data.table
+    data.table,
+    dplyr
 Remotes:
 	 adamryczkowski/danesurowe,
 	 adamryczkowski/relationshipMatrix
