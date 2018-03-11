@@ -15,7 +15,8 @@ Imports:
 	  purrr,
 	  zipfR,
 	  lsr,
-	  ggrepel
+	  ggrepel,
+	  broom
 Depends:
     data.table,
     dplyr
