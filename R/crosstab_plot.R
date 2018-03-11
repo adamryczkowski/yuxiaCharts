@@ -115,8 +115,9 @@ crosstab_plot<-function(pAcc, statistics, chapter){
 
 
 mycrosstabs<-function(df, zz, zn, groupby, group_lab, caption, ...) {
+  #browser()
   if(!is.null(groupby)) {
-    wzor<-expand.grid(unique(df[[zz]]), unique(df[[zn]]), stringsAsFactors = FALSE)
+    wzor<-expand.grid(setdiff(unique(df[[zz]]), NA), setdiff(unique(df[[zn]]), NA), stringsAsFactors = FALSE)
     colnames(wzor)<-c(zz,zn)
     wzor$n2<-0
     a<-df %>% select_(.dots=c(groupby,zn,zz,'n')) %>% data.frame() %>% group_by_(groupby) %>% tidyr::nest()
@@ -298,7 +299,6 @@ mycrosstab_2<-function(type, counts, group_lab, caption, flag_groups_on_top, fla
 
 #row_percent - wiersz z procentami taki, że sumują się do 100% w wierszu. Row percent wymaga sumowania po prawej stronie, inaczej nie ma sensu.
 mycrosstab_3<-function(type=c(1,2,3), counts, flag_include_row_percent, flag_include_col_percent, flag_include_percent) {
-
   hlabs <- colnames(counts)
   vlabs <- rownames(counts)
 
