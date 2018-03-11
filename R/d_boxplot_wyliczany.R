@@ -153,6 +153,7 @@ boxplot_wyliczany<-function(dt, filtr, zn, zz, groupby = '', hash, labs, bootstr
 
   #Mam zbiór dt. Najpierw filtr. Potem wybieram zmienne
 
+  browser() #Dodaj do tabeli liczebności w grupach
   mydt<-dt
   setkeyv(dt, c(zzfn$index, groupby, zn))
 

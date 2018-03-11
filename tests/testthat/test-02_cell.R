@@ -11,7 +11,7 @@ test_that("Dispatching a sample matrix", {
   dt<-loaddt()
   dt_structure<-danesurowe::create_df_from_df_structure(dt, flag_include_vartype = TRUE)
   aggrt<-allAggregates()
-  #debugonce(read_matrix)
+  debugonce(read_matrix)
   m<-read_matrix('tests/testthat/macierze_analiz.xlsx', dt_structure, aggregate_types = aggrt)
   #debugonce(classify_analyses)
   #debugonce(recognize_sheet_format)

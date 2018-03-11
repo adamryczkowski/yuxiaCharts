@@ -167,7 +167,7 @@ allAggregates<-function() {
                                                         label = 'Dymorfizm płciowy masy noworodka, wzór 1',
                                                         fn = dimorphism1_fun, fn2 = dimorphism1_fun2, index_var = 'sex', vars = 'preg_weight')
   ans$dymorfizm2<-relationshipMatrix::AggregateType$new(name = 'dymorfizm2',
-                                                        label = 'Dymorfizm płciowy masy noworodka, wzór 2',
+                                                        label = 'Dymorfizm płciowy masy ciała noworodka',
                                                         fn = dimorphism2_fun, fn2 = dimorphism2_fun2, index_var = 'sex', vars = 'preg_weight')
   ans$prop_plci<-relationshipMatrix::AggregateType$new(name = 'prop_plci',
                                                         label = 'Udział liczby urodzeń chłopców',
