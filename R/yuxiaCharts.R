@@ -8,6 +8,7 @@
 #' @name yuxiaCharts
 NULL
 
+.datatable.aware=TRUE
 
 # nocov start
 .onLoad	<-	function(libname,	pkgname)	{
