@@ -15,14 +15,14 @@ boxplot_dispatch<-function(pAcc) {
 
 boxplot_functions<-function(property_accessor, statistics) {
   property_accessor$done_discovery()
-  out_funs<-list(anovas=function(pAcc, statistics, chapter) boxplot_comments(pAcc, chapter),
+  out_funs<-list(
                  errorpoints=function(pAcc, statistics, chapter) boxplot(pAcc, do_violinplot=FALSE, chapter),
-                 violinplot=function(pAcc, statistics, chapter) boxplot(pAcc, do_violinplot=TRUE, chapter))
+                 violinplot=function(pAcc, statistics, chapter) boxplot(pAcc, do_violinplot=TRUE, chapter),
+                 anovas=function(pAcc, statistics, chapter) boxplot_comments(pAcc, chapter))
 }
 
 
 boxplot_comments<-function(pAcc, doc) {
-#  browser()
   db_obj<-pAcc$serve_db()
   language<-pAcc$get_property('language')
   db_obj$depvar_label()
@@ -31,6 +31,7 @@ boxplot_comments<-function(pAcc, doc) {
   db_obj$filter_label()
   pAcc$done_discovery()
   dt<-db_obj$chunkdf_ivdvgv()
+#  browser()
 
   #  labs <- yuxia::get_labels(zz=zz, zn=zn, groupby = groupby, dt=dt, filtr = filtr)
   if(db_obj$is_grouped()) {
