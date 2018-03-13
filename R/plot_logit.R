@@ -11,10 +11,10 @@ plot_logit<-function(pAcc, dt, chapter){
   inv<-pAcc$get_property('logit.rev')
   ivfob<-pAcc$get_property('iv.f.o.b')
   gvfob<-pAcc$get_property('gv.f.o.b')
-  nat_order = !pAcc$get_property('logit.sort_iv_levels', validate_bool, NA)
-  flag_add_count_boxes<-pAcc$get_property('logit.add_count_boxes', validate_bool, TRUE)
+  nat_order = !pAcc$get_property('logit.sort_iv_levels', relationshipMatrix::validate_bool, NA)
+  flag_add_count_boxes<-pAcc$get_property('logit.add_count_boxes', relationshipMatrix::validate_bool, TRUE)
   ivlevels<-db_obj$ivlevels(TRUE)
-  bootstrap_n<-pAcc$get_property('logit.bootstrap_n', validate_int, 500)
+  bootstrap_n<-pAcc$get_property('logit.bootstrap_n', relationshipMatrix::validate_int, 500)
 
   pAcc$done_discovery()
   mydt<-dt

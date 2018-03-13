@@ -2,12 +2,12 @@ crosstab_dispatch<-function(pAcc) {
   #browser()
   pAcc$set_report_dispatcher(crosstab_reports)
   db_obj<-pAcc$serve_db()
-  bootstrap_n<-pAcc$get_property('logit.bootstrap_n', validator = validate_int, default = 10000)
+  bootstrap_n<-pAcc$get_property('logit.bootstrap_n', validator = relationshipMatrix::validate_int, default = 10000)
 
   dvlevels<-db_obj$dvlevels(TRUE)
   ivlevels<-db_obj$ivlevels(TRUE)
   language<-pAcc$get_property('language')
-  flag_force_logit<-pAcc$get_property('crosstab.force_logit', validator = validate_bool, default = FALSE)
+  flag_force_logit<-pAcc$get_property('crosstab.force_logit', validator = relationshipMatrix::validate_bool, default = FALSE)
   if(is.na(flag_force_logit)) {
     flag_force_logit<-FALSE
   } else {

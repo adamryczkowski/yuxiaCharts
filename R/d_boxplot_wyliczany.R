@@ -30,7 +30,7 @@ boxplot_aggregate_dispatch<-function(pAcc) {
 boxplot_aggregate<-function(pAcc, statistics, chapter){
 #  browser()
   language<-pAcc$get_property('language')
-  bootstrap_n<-pAcc$get_property('aggregate_bootstrap_n', validate_int, 500)
+  bootstrap_n<-pAcc$get_property('aggregate_bootstrap_n', relationshipMatrix::validate_int, 500)
   db_obj<-pAcc$serve_db()
   db_obj$depvar_label()
   db_obj$indepvar_label()

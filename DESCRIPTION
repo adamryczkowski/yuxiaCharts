@@ -19,7 +19,9 @@ Imports:
 	  broom
 Depends:
     data.table,
-    dplyr
+    dplyr,
+    relationshipMatrix,
+    ggplot2
 Remotes:
 	 adamryczkowski/danesurowe,
 	 adamryczkowski/relationshipMatrix
