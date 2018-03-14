@@ -1,5 +1,5 @@
 ts_nominal_dispatch<-function(property_accessor) {
-  browser()
+  #browser()
 
   class_dep<-property_accessor$get_property('dv.vartype')
   if (class_dep=='D') {
@@ -67,7 +67,7 @@ ts_nominal_dispatch<-function(property_accessor) {
 
 
 ts_nominal_reports<-function(pAcc, statistics) {
-  browser()
+  #browser()
   db_obj<-pAcc$serve_db()
 
   dvlevels<-db_obj$dvlevels()
