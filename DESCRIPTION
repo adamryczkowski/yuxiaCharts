@@ -16,7 +16,9 @@ Imports:
 	  zipfR,
 	  lsr,
 	  ggrepel,
-	  broom
+	  broom,
+	  lubridate,
+	  rstan
 Depends:
     data.table,
     dplyr,
