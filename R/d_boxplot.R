@@ -9,6 +9,7 @@ boxplot_dispatch<-function(pAcc) {
   pAcc$get_property('gv.f.o.b')
   pAcc$set_report_dispatcher(boxplot_functions)
   db<-pAcc$done_discovery()
+  #browser()
   return(NULL)
 }
 
