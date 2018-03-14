@@ -101,7 +101,7 @@ get_mean_sd_multiple<-function(df, gr_var, m_var, sd_var) {
       y=(values),
       sigma=(ses)
     )
-    file <- pathcat::path.cat(getwd(),'stan/norm-h2.stan')
+    file <- system.file('stan/norm-h2.stan', package = 'yuxiaCharts')
     if(!file.exists(file)) {
       stop(paste0("Cannot find file with the model at ", file ))
     }
