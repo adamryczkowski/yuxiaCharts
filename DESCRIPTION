@@ -18,7 +18,8 @@ Imports:
 	  ggrepel,
 	  broom,
 	  lubridate,
-	  rstan
+	  rstan,
+	  ggfortify
 Depends:
     data.table,
     dplyr,
