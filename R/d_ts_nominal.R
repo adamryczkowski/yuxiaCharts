@@ -7,7 +7,7 @@ ts_nominal_dispatch<-function(property_accessor) {
   }
   db_obj<-property_accessor$serve_db()
 
-  dvlevels<-db_obj$dvlevels()
+  dvlevels<-db_obj$dvlevels(flag_recalculate = TRUE)
   if(length(dvlevels)<2) {
     return(list(plot_df=NULL, season_df=NULL))
   }
@@ -58,12 +58,8 @@ ts_nominal_dispatch<-function(property_accessor) {
   if(period_unit == '') {
     period_unit='year'
   }
-  if(sum(table(mydt$dv)>2)>1) {
-    season_df<-create_season_df(mydt, date_var='iv', factor_var = 'dv', groupby = 'gv',
-                                period_value = period_value, period_unit = period_unit)
-  } else {
-    season_df<-NULL
-  }
+  season_df<-create_season_df(mydt, date_var='iv', factor_var = 'dv', groupby = 'gv',
+                              period_value = period_value, period_unit = period_unit)
 
   return(list(plot_df=plot_df, season_df=season_df))
 }
@@ -73,11 +69,13 @@ ts_nominal_reports<-function(pAcc, statistics) {
   #browser()
   db_obj<-pAcc$serve_db()
 
-  dvlevels<-db_obj$dvlevels()
+  dvlevels<-db_obj$dvlevels(flag_recalculate = TRUE)
 
   if(length(dvlevels)<2) {
 
     language<-pAcc$get_property('language')
+    db_obj$filter_label()
+    db_obj$depvar_label()
     pAcc$done_discovery()
     if(language=='PL') {
       msg<-paste0("Nie udało się wykonać żadnych analiz, bo w grupie ",   db_obj$filter_label(), " są mniej niż dwa poziomy zmiennej ", db_obj$depvar_label())

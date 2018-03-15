@@ -22,7 +22,7 @@ plot_periodogram<-function(pAcc, chapter, plot_df){
   ylabels<-db_obj$dvlevels(flag_recalculate = TRUE)
 
   dt<-db_obj$chunkdf_ivdvgv()
-
+  #browser()
   fn_create_1_spectrum_df <- function(dt) {
     if(sum(dt$counts)==0) {
       return(data.frame(Frequency=seq(1/6, (year(max(dt$iv)) - year(min(dt$iv))+1), 1/6),
