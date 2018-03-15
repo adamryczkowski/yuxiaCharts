@@ -1,5 +1,5 @@
-crosstab_plot<-function(pAcc, statistics, chapter){
-#  browser()
+crosstab_plot<-function(pAcc, freqdf, chapter){
+  #browser()
   db_obj<-pAcc$serve_db()
   flag_force_logit = pAcc$get_property('crosstab.force_logit')
   flag_gr_after_indep = pAcc$get_property('table_group_first')
@@ -27,10 +27,10 @@ crosstab_plot<-function(pAcc, statistics, chapter){
   }
 
 
-  fob_dv <- pAcc$get_property('dv.f.o.b')
+  fob_dv <- db_obj$depvar_property('f.o.b')
 
   pAcc$done_discovery()
-  dt<-statistics$freqdf
+  dt<-freqdf
   #Mam zbiór dt. Najpierw filtr. Potem wybieram zmienne
 
 
@@ -52,13 +52,14 @@ crosstab_plot<-function(pAcc, statistics, chapter){
 
   if(db_obj$is_grouped()){
     if(length(danesurowe::GetLabels(factor(dt$iv)))>2){
-      h <- h + facet_grid(. ~ gv)
+      h <- h + facet_grid(. ~ gv) + xlab(paste0(db_obj$indepvar_label(), " × ", db_obj$groupvar_label())) + ylab(NULL)
     } else {
-      h <- h + facet_grid(gv ~ .)
+      h <- h + facet_grid(gv ~ .) + ylab(db_obj$groupvar_label()) + xlab(db_obj$indepvar_label())
     }
+  } else {
+    h <- h + ylab("") + xlab(db_obj$indepvar_label())
   }
 
-  h <- h + xlab(db_obj$indepvar_label()) + ylab(db_obj$depvar_label())
   if (nchar(db_obj$depvar_label())>40){
     h<-h + theme(legend.position="bottom",legend.direction="vertical")
   } else if (nchar(db_obj$depvar_label())>20){

@@ -95,8 +95,15 @@ plot_logit<-function(pAcc, dt, chapter){
     breaks=qlogis(maj_breaks),
     labels = scales::percent(maj_breaks))
 
+  #browser()
+  mydt<-db_obj$chunkdf_ivdvgv()
+  ylabel<-paste0(db_obj$depvar_label(), ": p(", danesurowe::GetLabels(factor(mydt$dv))[[2]], ")")
+  if(nchar(ylabel)> 50) {
+    ylabel<-paste0("p(", danesurowe::GetLabels(factor(mydt$dv))[[2]], ")")
+  }
+
   h <- h + geom_boxplot(aes(middle=q50, lower=q25, upper=q75, ymin=q05, ymax=q95), stat='identity') +
-    ylab(db_obj$depvar_label()) + xlab(db_obj$indepvar_label())
+    ylab(ylabel) + xlab(db_obj$indepvar_label())
   if(db_obj$is_grouped()){
     grlab<-db_obj$groupvar_label()
     h <- h + labs(fill=grlab, color=grlab)
@@ -116,13 +123,15 @@ plot_logit<-function(pAcc, dt, chapter){
     h <- h + theme(axis.text.x = rotatedAxisElementText(30,'x'))
   }
 
+  gvlevels<-db_obj$gvlevels()
+
   if(flag_add_count_boxes) {
     if(db_obj$is_grouped()) {
       if(flag_gr_after_indep) {
         #grlevels<-db_obj$gvlevels()
-        df <- dt %>% mutate(x=as.integer(iv) + (2*(as.integer(gv)-1.5)/length(danesurowe::GetLevels(factor(gv)))/2)) %>% data.table()
+        df <- dt %>% mutate(x=as.integer(iv) + (2*(as.integer(gv)-1.5)/length(gvlevels)/2)) %>% data.table()
       } else {
-        df <- dt %>% mutate(x=as.integer(iv) + (2*(as.integer(gv)-1.5)/length(danesurowe::GetLevels(factor(gv)))/2)) %>% data.table()
+        df <- dt %>% mutate(x=as.integer(iv) + (2*(as.integer(gv)-1.5)/length(gvlevels)/2)) %>% data.table()
       }
     } else {
       df <- dt %>%  mutate(x=as.integer(iv)) %>% data.table()

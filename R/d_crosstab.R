@@ -1,5 +1,5 @@
 crosstab_dispatch<-function(pAcc) {
-  #browser()
+#  browser()
   pAcc$set_report_dispatcher(crosstab_reports)
   db_obj<-pAcc$serve_db()
   bootstrap_n<-pAcc$get_property('logit.bootstrap_n', validator = relationshipMatrix::validate_int, default = 10000)
@@ -141,10 +141,14 @@ crosstab_reports<-function(pAcc, statistics) {
 
   plots<-list(
     two_by_two_test=two_by_two_test,
-    crosstab=function(pAcc, statistics, chapter) crosstab_plot(pAcc, statistics, chapter),
+    crosstab=function(pAcc, statistics, chapter) crosstab_plot(pAcc, statistics$freqdf, chapter),
     crosstab_inv=function(pAcc, statistics, chapter) {
       pAcc$reverse_vars()
-      crosstab_plot(pAcc, statistics, chapter)
+      freqdf<-statistics$freqdf
+      freqdf$tmp<-freqdf$iv
+      freqdf$iv<-freqdf$dv
+      freqdf$dv<-freqdf$tmp
+      crosstab_plot(pAcc, freqdf, chapter)
     }
   )
 
