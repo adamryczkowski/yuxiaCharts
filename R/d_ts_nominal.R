@@ -58,9 +58,12 @@ ts_nominal_dispatch<-function(property_accessor) {
   if(period_unit == '') {
     period_unit='year'
   }
-
-  season_df<-create_season_df(mydt, date_var='iv', factor_var = 'dv', groupby = 'gv',
-                              period_value = period_value, period_unit = period_unit)
+  if(sum(table(mydt$dv)>2)>1) {
+    season_df<-create_season_df(mydt, date_var='iv', factor_var = 'dv', groupby = 'gv',
+                                period_value = period_value, period_unit = period_unit)
+  } else {
+    season_df<-NULL
+  }
 
   return(list(plot_df=plot_df, season_df=season_df))
 }
@@ -86,9 +89,13 @@ ts_nominal_reports<-function(pAcc, statistics) {
   pAcc$done_discovery()
 
   plots<-list(
-    periodogram_nominal=function(pAcc, statistics, chapter) plot_periodogram(pAcc, chapter, plot_df = statistics$plot_df),
-    plot_seasons=function(pAcc, statistics, chapter) plot_seasons(pAcc, chapter, season_df = statistics$season_df)
+    periodogram_nominal=function(pAcc, statistics, chapter) plot_periodogram(pAcc, chapter, plot_df = statistics$plot_df)
   )
+  if(!is.null(statistics$season_df)) {
+    plots<-c(plots, list(plot_seasons=
+                           function(pAcc, statistics, chapter) plot_seasons(pAcc, chapter, season_df = statistics$season_df)))
+
+  }
   return(plots)
 
 }
