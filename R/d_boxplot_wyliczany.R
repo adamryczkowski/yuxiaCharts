@@ -17,7 +17,7 @@ boxplot_aggregate_dispatch<-function(pAcc) {
     return(list(boxplot_aggregate = boxplot_aggregate))
   })
 
-  mydt<-db_obj$chunkdf
+  mydt<-db_obj$chunkdf()
   zz<-db_obj$depvar
 
 
@@ -40,7 +40,7 @@ boxplot_aggregate<-function(pAcc, statistics, chapter){
   dv<-db_obj$depvar
 
   b<-statistics$bootdf
-  dt<-db_obj$chunkdf
+  dt<-db_obj$chunkdf()
 
   if(db_obj$is_grouped()) {
     h<-ggplot(data = b, mapping = aes(y = m, x = iv, fill = gv, colour=gv))

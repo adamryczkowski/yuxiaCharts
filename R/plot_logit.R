@@ -148,7 +148,7 @@ plot_logit<-function(pAcc, dt, chapter){
   } else {
     chart_prefix<-'logit'
   }
-  chart_hash<-chapter$insert_chart(caption=label, gg=h, tags='logit-plot', chart_prefix=chart_prefix)
+  chart_hash<-chapter$insert_ggchart(caption=label, gg=h, tags='logit-plot', chart_prefix=chart_prefix)
 
 
   if(db_obj$is_grouped()) {

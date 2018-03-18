@@ -156,7 +156,7 @@ crosstab_reports<-function(pAcc, statistics) {
     plots<-c(plots, list(
       plot_logit=function(pAcc, statistics, chapter) {
         pAcc$put_property('logit.rev', FALSE)
-        plot_logit(pAcc, statistics$logit_df1, chapter)
+        yuxiaCharts::plot_logit(pAcc, statistics$logit_df1, chapter)
       }
     ))
   }
@@ -166,7 +166,7 @@ crosstab_reports<-function(pAcc, statistics) {
       plot_logit=function(pAcc, statistics, chapter) {
         pAcc$reverse_vars()
         pAcc$put_property('logit.rev', TRUE)
-        plot_logit(pAcc, statistics$logit_df2, chapter)
+        yuxiaCharts::plot_logit(pAcc, statistics$logit_df2, chapter)
       }
     ))
   }
