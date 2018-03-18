@@ -87,7 +87,10 @@ ts_nominal_reports<-function(pAcc, statistics) {
   pAcc$done_discovery()
 
   plots<-list(
-    periodogram_nominal=function(pAcc, statistics, chapter) plot_periodogram(pAcc, chapter, plot_df = statistics$plot_df)
+    periodogram_nominal=function(pAcc, statistics, chapter) {
+      plot_periodogram(pAcc, plot_df = statistics$plot_df)
+      chapter$insert_ggchart(caption=ans$label, gg=ans$chart, chart_prefix=c('ts_nominal', 'ts_nominal_periodogram'))
+    }
   )
   if(!is.null(statistics$season_df)) {
     plots<-c(plots, list(plot_seasons=
@@ -111,3 +114,4 @@ decompose_freqs<-function(myts) {
   df<-cbind(myts, seasonal = df$seasonal+my_mean, trend = df$trend, remainder=df$remainder+my_mean)
   return(as_tibble(df))
 }
+

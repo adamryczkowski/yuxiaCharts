@@ -3,15 +3,17 @@
 #iv - zmienna, która będzie kodować kolory
 #gv - zmienna, która będzie kodować facets
 #counts - wartości, których widmo mamy liczyć
-plot_periodogram<-function(pAcc, chapter, plot_df){
+plot_periodogram<-function(pAcc, plot_df){
   db_obj<-pAcc$serve_db()
 
-  flag_is_groupby<-db_obj$is_grouped()
+  flag_is_groupby<-'gv' %in% colnames(plot_df)
+  flag_is_dv<-'dv' %in% colnames(plot_df)
   language<-pAcc$get_property('language')
   db_obj$depvar_label()
   db_obj$indepvar_label()
   db_obj$groupvar_label()
   db_obj$filter_label()
+  iv_vartype<-db_obj$indepvar_property('vartype')
   flag_include_smoothed<-pAcc$get_property('include_smoothed_periodogram')
   if(is.na(flag_include_smoothed)) {
     flag_include_smoothed<-TRUE
@@ -19,7 +21,11 @@ plot_periodogram<-function(pAcc, chapter, plot_df){
     flag_include_smoothed<-as.logical(flag_include_smoothed)
   }
 
-  ylabels<-db_obj$dvlevels(flag_recalculate = TRUE)
+  if(iv_vartype %in% c('F','L')) {
+    ylabels<-db_obj$dvlevels(flag_recalculate = TRUE)
+  } else {
+    ylabels<-"1"
+  }
 
   dt<-db_obj$chunkdf_ivdvgv()
   #browser()
@@ -42,7 +48,11 @@ plot_periodogram<-function(pAcc, chapter, plot_df){
   }
 
   if(!flag_is_groupby) {
-    mydt <- plot_df %>% data.frame() %>% group_by(dv)
+    if(!flag_is_dv) {
+      mydt<-plot_df %>% mutate(dv=factor(1)) %>% group_by(dv)
+    } else {
+      mydt <- plot_df %>% data.frame() %>% group_by(dv)
+    }
   } else {
     mydt <- plot_df %>% data.frame() %>% group_by(gv, dv)
   }
@@ -93,9 +103,17 @@ plot_periodogram<-function(pAcc, chapter, plot_df){
   xlabels<-setNames(yrs.period, yrs.labels)
 
   h<-set_xlabels(h = h, zzlab = db_obj$depvar_label(), xlabels = yrs.labels, ylabels = ylabels, flag_y_percent = FALSE)
+  if(!flag_is_dv) {
+    h<-h + guides(colour=FALSE)
+  } else {
+    if(!flag_is_groupby && db_obj$is_grouped()) {
+      h <- h + labs(color=db_obj$groupvar_label())
+    } else {
+      h <- h + labs(color=db_obj$depvar_label())
+    }
+  }
 
 
-  h <- h + labs(color=db_obj$depvar_label())
   # if (charznlab>40){
   #   h<-h+theme(legend.position="bottom",legend.direction="vertical")
   # } else if (charznlab>20){
@@ -104,8 +122,12 @@ plot_periodogram<-function(pAcc, chapter, plot_df){
   h<-h + scale_x_continuous(breaks=yrs.period, labels=yrs.labels, minor_breaks = NULL)
 
   if(language=='PL') {
-    label <- paste0('Standaryzowane periodogramy dla częstości występowania każdego z poziomów ', db_obj$indepvar_label(TRUE))
-    if(flag_is_groupby) {
+    if(length(ylabels)==1) {
+      label <- paste0('Periodogram dla ', db_obj$indepvar_label(TRUE))
+    } else {
+      label <- paste0('Standaryzowane periodogramy dla częstości występowania każdego z poziomów ', db_obj$indepvar_label(TRUE))
+    }
+    if(db_obj$is_grouped()) {
       label<-paste0(label, ' w podziale na ', db_obj$groupvar_label(TRUE))
     }
     label <- paste0(label, '. Periodogram policzono przy pomocy procedury `spec.pgram` pakietu R. ')
@@ -132,9 +154,9 @@ plot_periodogram<-function(pAcc, chapter, plot_df){
     browser()
   }
 #  browser()
-  chapter$insert_chart(caption = label, gg = h, chart_prefix = 'periodogram', tags = 'periodogram')
+#  chapter$insert_ggchart(caption = label, gg = h, chart_prefix = 'periodogram', tags = 'periodogram')
 
-  return(chapter)
+  return(list(label=label, chart=h))
 }
 
 

@@ -97,7 +97,7 @@ boxplot_aggregate<-function(pAcc, statistics, chapter){
     browser()
   }
   tags<-c('bootstrap', 'aggregate_vars', 'boxplot')
-  chart_hash<-chapter$insert_chart(caption=label, gg=h, chart_prefix='aggregate_boxplot', tags=tags)
+  chart_hash<-chapter$insert_ggchart(caption=label, gg=h, chart_prefix='aggregate_boxplot', tags=tags)
 
   b2 <- b %>%  mutate(m=danesurowe::report_value_with_error(value=m, ci=sd), q05=danesurowe::report_single_value(q05),
                       q25=danesurowe::report_single_value(q25),q50=danesurowe::report_single_value(q50),

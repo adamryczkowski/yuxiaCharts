@@ -300,7 +300,7 @@ boxplot<-function(pAcc, do_violinplot=FALSE, chapter, remove_outliers = FALSE){
   }
   tags<-c(tags, chart_prefix)
   #  browser()
-  chart_hash<-chapter$insert_chart(caption = label, gg = h, tags = tags, chart_prefix = chart_prefix)
+  chart_hash<-chapter$insert_ggchart(caption = label, gg = h, tags = tags, chart_prefix = chart_prefix)
   if(db_obj$is_grouped()) {
     mycols <- db_obj$groupvar_label(flag_md = FALSE)
     tab<-mydt %>%  data.frame() %>% group_by(gv, iv)

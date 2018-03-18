@@ -67,13 +67,16 @@ plot_seasons<-function(pAcc, chapter, season_df = statistics$season_df){
   if(language=='PL') {
     mycols <- c(mycols, db_obj$indepvar_label(),  db_obj$depvar_label(), "udział %", "τ")
 
-    label<-paste0("Wykres przedstawiający komponent sezonowy. Błędy standardowe policzono przy użyciu bayesowskiego modelu miksującego błędy liczone poprzez estymator odchylenia standardowego pomiędzy latami i błędy liczone z rozkładu Dirichleta. Parametr miksujący, τ, zbiega do zera, jeśli pomiary dla każdego roku w danym miesiącu są ze sobą zgodne oraz do odchylenia standardowego między latami, jeśli pomiary proporcji zmiennej grupującej pomiędzy latami w danym miesiącu nie są zgodne.")
+    label<-paste0("Wykres przedstawiający komponent sezonowy częstości występowania poziomów ", db_obj$depvar_label(TRUE), " względem ", db_obj$indepvar_label(TRUE),
+                  if(db_obj$is_grouped()) paste0(" w podziale wg. ", db_obj$groupvar_label(TRUE)) else "",
+                  "",
+                  "Błędy standardowe policzono przy użyciu bayesowskiego modelu miksującego błędy liczone poprzez estymator odchylenia standardowego pomiędzy latami i błędy liczone z rozkładu Dirichleta. Parametr miksujący, τ, zbiega do zera, jeśli pomiary dla każdego roku w danym miesiącu są ze sobą zgodne oraz do odchylenia standardowego między latami, jeśli pomiary proporcji zmiennej grupującej pomiędzy latami w danym miesiącu nie są zgodne.")
     if(!is.null(attr(season_df$small_gr,'units'))){
       nice_unit<-nice_unit_name(attr(season_df$small_gr,'units'), language)
       label<-paste0(label, " Najmniejszą podziałką osi X oznaczono ", nice_unit)
     }
-    tags<-c('nominal_ts_4seasons')
-    chart_hash<-chapter$insert_chart(caption = label, gg = h, tags = tags, chart_prefix = 'nominal_ts_4seasons')
+    tags<-c('ts_nominal_4seasons','ts_nominal')
+    chart_hash<-chapter$insert_ggchart(caption = label, gg = h, tags = tags, chart_prefix = 'nominal_ts_4seasons')
     tablabel <- paste0("Tabela ze wartościami użytymi w wykresie @fig:", chart_hash, '. ')
   } else if (language=='EN') {
     browser()
