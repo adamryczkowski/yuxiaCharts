@@ -50,7 +50,7 @@ plot_logit<-function(pAcc, dt, chapter){
 
   if(language=='PL') {
     label <- paste0("Wykres typu box plot ilustrujący rozkład logitu udziału ", zzlevel1,
-                    " wśród ", db_obj$filter_label(TRUE), " w podziale na ", db_obj$indepvar_label(TRUE),
+                    " zmiennej ", db_obj$depvar_label(TRUE), " wśród ", db_obj$filter_label(TRUE), " w podziale na ", db_obj$indepvar_label(TRUE),
                     ". Rozkład został policzony metodą Monte-Carlo z analitycznego wzoru na odwróconą dystrybuantę ",
                     "rozkładu logit ze zmiennej z rozkładu beta dla n = ",
                     bootstrap_n, " symulacji. 95% kwantyle tego rozkładu zostały oznaczone wąsami. " )

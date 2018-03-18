@@ -140,7 +140,6 @@ crosstab_reports<-function(pAcc, statistics) {
   }
 
   plots<-list(
-    two_by_two_test=two_by_two_test,
     crosstab=function(pAcc, statistics, chapter) crosstab_plot(pAcc, statistics$freqdf, chapter),
     crosstab_inv=function(pAcc, statistics, chapter) {
       pAcc$reverse_vars()
@@ -149,7 +148,8 @@ crosstab_reports<-function(pAcc, statistics) {
       freqdf$iv<-freqdf$dv
       freqdf$dv<-freqdf$tmp
       crosstab_plot(pAcc, freqdf, chapter)
-    }
+    },
+    two_by_two_test=two_by_two_test
   )
 
   if(!is.null(statistics$logit_df1)) {
