@@ -87,7 +87,7 @@ crosstab_plot<-function(pAcc, freqdf, chapter){
   if(!pAcc$is_reversed()) {
 #    tmp<-chapter$discard_changes
 #    chapter$discard_changes<-TRUE
-    chart_hash2<-chapter$insert_ggchart(caption = label, gg = h, chart_prefix = 'mozaic_plot_rev', tags = 'mozaic_plot')
+    chart_hash2<-chapter$get_object_hash(caption = label, file_prefix = 'mozaic_plot_rev')
 #    chapter$discard_changes<-tmp
     caption<- paste0("Wartości użyte do wykreślenia wykresu @fig:", chart_hash, " i @fig:", chart_hash2, ". ")
 
