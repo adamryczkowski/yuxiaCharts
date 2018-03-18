@@ -1,5 +1,5 @@
 plot_logit<-function(pAcc, dt, chapter){
-  #browser()
+  browser()
 
   db_obj<-pAcc$serve_db()
   flag_gr_after_indep = pAcc$get_property('table_group_first')
@@ -161,7 +161,7 @@ plot_logit<-function(pAcc, dt, chapter){
   if (language=='PL') {
     cnames <- c(cnames, db_obj$indepvar_label(), "Kwantyl 2,5%", "Dolny kwartyl", "Mediana", "Górny kwartyl", "Kwantyl 97,5%", paste0("N ", zzlevel1), paste0("N ", zzlevel0), "Wartość")
 
-    cap<-paste0("Dane wykorzystane w wykresie @fig:", chart_hash, " . Kwantyle zostały policzone na podstawie symulacji Monte-Carlo, natomiast Wartość jest wartością punktową dla danej grupy. Aby pozbyć się nieskończoności w przypadkach, gdy liczności jednej z grup są równe 0, policzono logit z dodaną sztucznie 1 obserwacją do obu grup. ")
+    cap<-paste0("Dane wykorzystane w wykresie @fig:", chart_hash, " . Kwantyle zostały policzone na podstawie symulacji Monte-Carlo, natomiast wartość jest wartością punktową dla danej grupy. Aby pozbyć się nieskończoności w przypadkach, gdy liczności jednej z grup są równe 0, policzono logit z dodaną sztucznie 1 obserwacją do obu grup. ")
   } else if(language=='EN') {
     browser()
   } else {

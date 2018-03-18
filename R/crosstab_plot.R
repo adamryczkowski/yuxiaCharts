@@ -118,7 +118,7 @@ crosstab_plot<-function(pAcc, freqdf, chapter){
 mycrosstabs<-function(df, zz, zn, groupby, group_lab, caption, ...) {
   #browser()
   if(!is.null(groupby)) {
-    wzor<-expand.grid(setdiff(unique(df[[zz]]), NA), setdiff(unique(df[[zn]]), NA), stringsAsFactors = FALSE)
+    wzor<-expand.grid(setdiff(unique(df[[zz]]), NA), setdiff(unique(df[[zn]]), NA), stringsAsFactors = TRUE)
     colnames(wzor)<-c(zz,zn)
     wzor$n2<-0
     a<-df %>% select_(.dots=c(groupby,zn,zz,'n')) %>% data.frame() %>% group_by_(groupby) %>% tidyr::nest()

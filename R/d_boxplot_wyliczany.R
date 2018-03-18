@@ -108,7 +108,7 @@ boxplot_aggregate<-function(pAcc, statistics, chapter){
   } else {
     mycols <- character(0)
   }
-  mycols <- c(mycols, db_obj$indepvar_label(), "Wartość punktowa z Błędem standardowym", "$Q_{2,5\\%}$", "Dolny kwartyl", "Mediana", "Górny kwartyl", "$Q_{97,5\\%}$")
+  mycols <- c(mycols, db_obj$indepvar_label(), "Wartość punktowa z błędem standardowym", "$Q_{2,5\\%}$", "Dolny kwartyl", "Mediana", "Górny kwartyl", "$Q_{97,5\\%}$")
   colnames(b2) <- mycols
 
   tablabel <- paste0(

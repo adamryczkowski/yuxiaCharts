@@ -1,5 +1,5 @@
 crosstab_dispatch<-function(pAcc) {
-#  browser()
+  browser()
   pAcc$set_report_dispatcher(crosstab_reports)
   db_obj<-pAcc$serve_db()
   bootstrap_n<-pAcc$get_property('logit.bootstrap_n', validator = relationshipMatrix::validate_int, default = 10000)
@@ -72,10 +72,13 @@ crosstab_dispatch<-function(pAcc) {
     if (flag_logit) {
       if(db_obj$is_grouped()) {
         logit_df1<-mydt[, as.data.table(get_quantiles(.SD, bootstrap_n=bootstrap_n, varname='dv')), by = c('gv', 'iv')]
+        setorder(logit_df1, gv, iv)
       } else {
         logit_df1<-mydt[, as.data.table(get_quantiles(.SD, bootstrap_n=bootstrap_n, varname='dv')), by = c('iv')]
+        setorder(logit_df1, iv)
       }
-      logit_df1 <- data.table(logit_df1 %>% mutate(m = Vectorize(car::logit, vectorize.args = 'p')(c((1+npos)/(npos+nneg+2)), adjust=FALSE)))
+      logit_df1 <- data.table::data.table(logit_df1 %>% mutate(m = Vectorize(car::logit, vectorize.args = 'p')(c((1+npos)/(npos+nneg+2)), adjust=FALSE))  )
+
       danesurowe::copy_dt_attributes(mydt, logit_df1)
       setattr(logit_df1$m,'label',Hmisc::label(mydt$iv))
       setattr(logit_df1$m, 'level1', danesurowe::GetLabels(factor(mydt$dv))[[2]])
@@ -84,8 +87,10 @@ crosstab_dispatch<-function(pAcc) {
     if (flag_logit_rev) {
       if(db_obj$is_grouped()) {
         logit_df2<-mydt[, as.data.table(get_quantiles(.SD, bootstrap_n=bootstrap_n, varname='iv')), by = c('gv', 'dv')]
+        setorder(logit_df2, gv, dv)
       } else {
         logit_df2<-mydt[, as.data.table(get_quantiles(.SD, bootstrap_n=bootstrap_n, varname='iv')), by = c('dv')]
+        setorder(logit_df2, dv)
       }
       logit_df2 <- data.table(logit_df2 %>% mutate(m = Vectorize(car::logit, vectorize.args = 'p')(c((1+npos)/(npos+nneg+2)), adjust=FALSE)))
       danesurowe::copy_dt_attributes(mydt, logit_df2)
