@@ -1,5 +1,4 @@
 crosstab_dispatch<-function(pAcc) {
-  browser()
   pAcc$set_report_dispatcher(crosstab_reports)
   db_obj<-pAcc$serve_db()
   bootstrap_n<-pAcc$get_property('logit.bootstrap_n', validator = relationshipMatrix::validate_int, default = 10000)

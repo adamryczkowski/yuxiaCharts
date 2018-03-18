@@ -1,5 +1,4 @@
 plot_logit<-function(pAcc, dt, chapter){
-  browser()
 
   db_obj<-pAcc$serve_db()
   flag_gr_after_indep = pAcc$get_property('table_group_first')
