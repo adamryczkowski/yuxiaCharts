@@ -88,7 +88,7 @@ ts_nominal_reports<-function(pAcc, statistics) {
 
   plots<-list(
     periodogram_nominal=function(pAcc, statistics, chapter) {
-      plot_periodogram(pAcc, plot_df = statistics$plot_df)
+      ans<-plot_periodogram(pAcc, plot_df = statistics$plot_df)
       chapter$insert_ggchart(caption=ans$label, gg=ans$chart, chart_prefix=c('ts_nominal', 'ts_nominal_periodogram'))
     }
   )
