@@ -205,7 +205,7 @@ plot_sinus_season<-function(pAcc, statistics, chapter){
   db_obj$depvar_label()
   db_obj$filter_label()
   pAcc$done_discovery()
-  browser()
+  #browser()
   #The basic plot
 
   if(db_obj$is_grouped()) {
