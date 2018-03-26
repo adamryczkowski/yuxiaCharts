@@ -228,7 +228,7 @@ two_by_two_KW_test<-function(pAcc, statistics, chapter) {
   dvlevels<-db_obj$dvlevels()
 
   mydt<-db_obj$chunkdf_ivdvgv()
-  browser()
+#  browser()
 
 
   do_test<-function(ldf) {
@@ -242,9 +242,8 @@ two_by_two_KW_test<-function(pAcc, statistics, chapter) {
         n2 <- nrow(df)
       }
       return(
-        data.frame(statistic_txt = '-', pvalue_txt = '-', estimate_txt = '-', n1 = n1, n2 = n2, pXgtY_txt = '-',
-                   n1_txt = format(n1, big.mark = '\uA0'), n2_txt = format(n2, big.mark = '\uA0'),
-                   p.value=NA, pXgtY = NA, estimate = NA, conf.low = NA, conf.high = NA, statistic = NA)
+        data.frame(statistic_txt = '-', pvalue_txt = '-', estimate_txt = '-',
+                   p.value=NA, pXgtY = NA, parameter = NA, statistic = NA)
       )
 
     } else {
@@ -255,25 +254,11 @@ two_by_two_KW_test<-function(pAcc, statistics, chapter) {
         )
         return(ans)
       }
-
-      ans <- tryCatch(
-        df %>% na.omit() %>% mutate_all(as.integer) %>%  group_by(dv) %>% tidyr::nest() %>%
-          tidyr::spread_(key_col='dv', value_col='data') %>%
-          do(cbind(do_1test(.[[1]], .[[2]]),
-                   data.frame(n1=nrow(.[[1]][[1]]), n2=nrow(.[[2]][[1]]))
-          )) %>%
-          mutate(statistic_txt=danesurowe::report_single_value(statistic),
-                 pvalue_txt=danesurowe::report_pvalue_long(p.value),
-                 estimate_txt=danesurowe::report_value_with_bounds(estimate, conf.low, conf.high),
-                 pXgtY = estimate/n1/n2,
-                 n1_txt = danesurowe::report_integer(n1),
-                 n2_txt = danesurowe::report_integer(n2),
-                 pXgtY_txt = danesurowe::report_single_value(pXgtY)
-          ) %>% select(-method, -alternative),
-        error=function(e) tibble(estimate=NA, statistic=NA, p.value=NA, conf.low=NA, conf.high=NA, n1=0, n2=0,
-                                 statistic_txt='-', pvalue_txt='-', estimate_txt='-', pXgtY=NA, n1_txt=0, n2_txt=0,
-                                 pXgtY_txt=NA)
-      )
+      ans<-do_1test(df) %>%
+          mutate(statistic_txt=danesurowe::report_single_value(statistic, n.significant = 3),
+                 estimate_txt=danesurowe::report_integer(parameter),
+                 pvalue_txt=danesurowe::report_pvalue_long(p.value)
+          ) %>% select(-method)
 
       return(ans)
     }
@@ -288,12 +273,11 @@ two_by_two_KW_test<-function(pAcc, statistics, chapter) {
   } else {
     tab_df <-do_test(list(mydt%>%data.frame()))
   }
-  tab_df_txt <- tab_df %>% select(-estimate, -statistic, -p.value, -conf.low, -conf.high, -n1, -n2, -pXgtY) %>%  data.frame()
+  tab_df_txt <- tab_df %>% select(-statistic, -p.value, -parameter) %>%  data.frame()
 
   if(language=='PL') {
-    collabels <- c(db_obj$groupvar_label(), "U Manna-Whitneya", "Istotność",
-                   "Przesunięcie rozkładów", "$N_X$", "$N_Y$", "$P(X > Y)$")
-    tab_caption <- "Statystyki testu U-Manna-Wilcoxona-Whitneya wraz z estymatami siły związku: przesunięcia rozkładów (wraz z 95% przedziałem ufności) oraz prawdopodobieństwa, że losowo wybrana obserwacja z jednej grupy jest większa od obserwacji z drugiej grupy."
+    collabels <- c(db_obj$groupvar_label(), "Statystyka Kruskala-Wallisa", "Parametr",  "Istotność")
+    tab_caption <- "Statystyki testu Kruskala-Wallisa."
   } else if(language=='EN') {
     browser()
   } else {
@@ -303,7 +287,7 @@ two_by_two_KW_test<-function(pAcc, statistics, chapter) {
   # for(i in seq(ncol(tab_df_txt))) {
   #   setattr(tab_df_txt[[i]], 'label', collabels[[i]])
   # }
-  chapter$insert_table(caption=tab_caption, table_df = tab_df_txt, tags = c('crosstab_test', 'u-mww-test'))
+  chapter$insert_table(caption=tab_caption, table_df = tab_df_txt, tags = c('crosstab_test', 'kw-test'))
   return(chapter)
 }
 
