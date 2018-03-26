@@ -36,6 +36,7 @@ boxplot_aggregate<-function(pAcc, statistics, chapter){
   db_obj$indepvar_label()
   db_obj$groupvar_label()
   db_obj$filter_label()
+  gvfob<-db_obj$groupvar_property('f.o.b')
 
   dv<-db_obj$depvar
 
@@ -44,7 +45,7 @@ boxplot_aggregate<-function(pAcc, statistics, chapter){
 
   if(db_obj$is_grouped()) {
     h<-ggplot(data = b, mapping = aes(y = m, x = iv, fill = gv, colour=gv))
-    if(identical(attr(dt[[db_obj$groupvar_name]],'f.o.b'),2) )
+    if(identical(gvfob,2) )
     {
       h<-h+scale_fill_brewer(palette="Blues") + scale_color_grey(start = 0.5, end=0)
     } else {
@@ -189,7 +190,7 @@ boxplot_wyliczany<-function(dt, filtr, zn, zz, groupby = '', hash, labs, bootstr
 
   if(!is.null(groupby)) {
     h<-ggplot(data = b, mapping = aes_string(y = 'm', x = zn, fill = groupby, colour=groupby))
-    if(identical(attr(dt[[groupby]],'f.o.b'),2) )
+    if(identical(gvfob,2) )
     {
       h<-h+scale_fill_brewer(palette="Blues") + scale_color_grey(start = 0.5, end=0)
     } else {

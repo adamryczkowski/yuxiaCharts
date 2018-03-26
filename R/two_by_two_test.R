@@ -12,10 +12,12 @@ two_by_two_test<-function(pAcc, statistics, chapter) {
     msg2 <- paste0("Policzono statystyki mierzące związek między ", db_obj$indepvar_label(TRUE), " a ", db_obj$depvar_label(TRUE))
     if(db_obj$is_grouped()){
       msg2 <- paste0(msg2, " w rozbiciu na ", db_obj$groupvar_label(TRUE), ". \n")
+    } else {
+      msg2<-paste0(msg2, ". ")
     }
 
     if(db_obj$filter_label()!='') {
-      msg2<-paste0(msg2, 'Analizę wykonano na zbiorze:', db_obj$filter_label(TRUE), '. \n')
+      msg2<-paste0(msg2, 'Analizę wykonano na zbiorze: ', db_obj$filter_label(TRUE), '. \n')
     }
   } else if(language=='EN') {
     browser()
@@ -26,7 +28,7 @@ two_by_two_test<-function(pAcc, statistics, chapter) {
   chapter$insert_paragraph(msg2)
 
   cat_fob<-paste0(fob_iv, fob_dv)
-
+#  browser()
   if(cat_fob %in% c('11', '13', '31', '33')) {
     two_by_two_chi2_test(pAcc, statistics, chapter)
   } else if (cat_fob %in% c('32')) {
@@ -37,6 +39,10 @@ two_by_two_test<-function(pAcc, statistics, chapter) {
   } else if (cat_fob == '22') {
     two_by_two_rho_test(pAcc, statistics, chapter)
   } else if (cat_fob %in% c('12', '21')) {
+    if(cat_fob=='12') {
+      pAcc$reverse_vars()
+    }
+    two_by_two_KW_test(pAcc, statistics, chapter)
     #browser() #This test needs to be implemented
   } else {
     browser()
@@ -105,8 +111,8 @@ two_by_two_chi2_test<-function(pAcc, statistics, chapter) {
     testt <- chisq.test(mydt$iv, mydt$dv)
 
     if(language=='PL') {
-      msg <- pasate0(msg, ". Wykonano test niezależności χ²\uA0 Pearsona na ",
-                     danesurowe::liczebnik(liczba = nrow(na.omit(cbind(sex=dt$iv, d=dt$dv))),
+      msg <- paste0("Wykonano test niezależności χ²\uA0 Pearsona na ",
+                     danesurowe::liczebnik(liczba = nrow(mydt),
                                            mianownik = 'przypadku', dopelniacz = 'przypadkach',
                                            lmnoga = 'przypadkach', flag_skip_one = FALSE, flag_skip_zero = FALSE),
                      '. Uzyskano wartość statystyki χ²(', testt$parameter, ') równą ',
@@ -215,6 +221,92 @@ two_by_two_U_test<-function(pAcc, statistics, chapter) {
   return(chapter)
 }
 
+two_by_two_KW_test<-function(pAcc, statistics, chapter) {
+  db_obj<-pAcc$serve_db()
+  language<-pAcc$get_property('language')
+
+  dvlevels<-db_obj$dvlevels()
+
+  mydt<-db_obj$chunkdf_ivdvgv()
+  browser()
+
+
+  do_test<-function(ldf) {
+    df <- ldf[[1]]
+    if(length(unique(df$dv))<2) {
+      if(as.character(df$dv[[1]])==names(dvlevels)[[1]]) {
+        n1 <- nrow(df)
+        n2 <- 0
+      } else {
+        n1 <- 0
+        n2 <- nrow(df)
+      }
+      return(
+        data.frame(statistic_txt = '-', pvalue_txt = '-', estimate_txt = '-', n1 = n1, n2 = n2, pXgtY_txt = '-',
+                   n1_txt = format(n1, big.mark = '\uA0'), n2_txt = format(n2, big.mark = '\uA0'),
+                   p.value=NA, pXgtY = NA, estimate = NA, conf.low = NA, conf.high = NA, statistic = NA)
+      )
+
+    } else {
+      do_1test<-function(dt) {
+        ans<-tryCatch(
+          broom::tidy(stats::kruskal.test(dv ~ iv, data=dt)),
+          error=function(e) tibble(parameter=NA, statistic=NA, p.value=NA, method=NA)
+        )
+        return(ans)
+      }
+
+      ans <- tryCatch(
+        df %>% na.omit() %>% mutate_all(as.integer) %>%  group_by(dv) %>% tidyr::nest() %>%
+          tidyr::spread_(key_col='dv', value_col='data') %>%
+          do(cbind(do_1test(.[[1]], .[[2]]),
+                   data.frame(n1=nrow(.[[1]][[1]]), n2=nrow(.[[2]][[1]]))
+          )) %>%
+          mutate(statistic_txt=danesurowe::report_single_value(statistic),
+                 pvalue_txt=danesurowe::report_pvalue_long(p.value),
+                 estimate_txt=danesurowe::report_value_with_bounds(estimate, conf.low, conf.high),
+                 pXgtY = estimate/n1/n2,
+                 n1_txt = danesurowe::report_integer(n1),
+                 n2_txt = danesurowe::report_integer(n2),
+                 pXgtY_txt = danesurowe::report_single_value(pXgtY)
+          ) %>% select(-method, -alternative),
+        error=function(e) tibble(estimate=NA, statistic=NA, p.value=NA, conf.low=NA, conf.high=NA, n1=0, n2=0,
+                                 statistic_txt='-', pvalue_txt='-', estimate_txt='-', pXgtY=NA, n1_txt=0, n2_txt=0,
+                                 pXgtY_txt=NA)
+      )
+
+      return(ans)
+    }
+  }
+  if(db_obj$is_grouped()){
+    #    browser()
+    #    grs<-mydt %>% data.frame() %>% mutate_all(as.integer) %>%  group_by_(.dots=c(groupby)) %>% tidyr::nest()
+    grs<-mydt %>% data.frame() %>% group_by(gv) %>% tidyr::nest()
+
+    #browser()
+    tab_df <- grs %>% group_by(gv) %>%  do(do_test(.$data))
+  } else {
+    tab_df <-do_test(list(mydt%>%data.frame()))
+  }
+  tab_df_txt <- tab_df %>% select(-estimate, -statistic, -p.value, -conf.low, -conf.high, -n1, -n2, -pXgtY) %>%  data.frame()
+
+  if(language=='PL') {
+    collabels <- c(db_obj$groupvar_label(), "U Manna-Whitneya", "Istotność",
+                   "Przesunięcie rozkładów", "$N_X$", "$N_Y$", "$P(X > Y)$")
+    tab_caption <- "Statystyki testu U-Manna-Wilcoxona-Whitneya wraz z estymatami siły związku: przesunięcia rozkładów (wraz z 95% przedziałem ufności) oraz prawdopodobieństwa, że losowo wybrana obserwacja z jednej grupy jest większa od obserwacji z drugiej grupy."
+  } else if(language=='EN') {
+    browser()
+  } else {
+    browser()
+  }
+  setLabels(tab_df_txt, collabels)
+  # for(i in seq(ncol(tab_df_txt))) {
+  #   setattr(tab_df_txt[[i]], 'label', collabels[[i]])
+  # }
+  chapter$insert_table(caption=tab_caption, table_df = tab_df_txt, tags = 'u-mww-test')
+  return(chapter)
+}
+
 two_by_two_rho_test<-function(pAcc, statistics, chapter) {
   #browser()
   db_obj<-pAcc$serve_db()
@@ -261,7 +353,8 @@ two_by_two_rho_test<-function(pAcc, statistics, chapter) {
     } else {
       browser()
     }
-    chapter$insert_table(caption = msg, table_df = tab, tags = 'spearman_test', flag_header_in_md=TRUE)
+    chapter$insert_paragraph(msg)
+    chapter$insert_table(caption = attr(tab, 'caption'), table_df = tab, tags = 'spearman_test', flag_header_in_md=TRUE)
 
   } else {
     browser()

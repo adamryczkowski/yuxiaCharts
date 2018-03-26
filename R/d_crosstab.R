@@ -33,7 +33,7 @@ crosstab_dispatch<-function(pAcc) {
 
   flag_logit = FALSE
   flag_logit_rev = FALSE
-  if(sum(mydt$frq < 0.01)>1 || flag_force_logit) {
+  if(sum(mydt$frq > 0.01)>1 || flag_force_logit) {
     flag_logit_rev = FALSE
     flag_logit = FALSE
     if (length(dvlevels)==2)
@@ -113,7 +113,6 @@ mydistinv<-function(a,b,p) {
 }
 
 crosstab_reports<-function(pAcc, statistics) {
-#  browser()
   db_obj<-pAcc$serve_db()
 
   dvlevels<-db_obj$dvlevels(TRUE)

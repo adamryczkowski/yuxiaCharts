@@ -27,5 +27,6 @@ Depends:
     ggplot2
 Remotes:
 	 adamryczkowski/danesurowe,
-	 adamryczkowski/relationshipMatrix
+	 adamryczkowski/relationshipMatrix,
+	 adamryczkowski/PostHocGroups
 	 
