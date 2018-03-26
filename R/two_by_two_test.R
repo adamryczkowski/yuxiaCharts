@@ -104,7 +104,7 @@ two_by_two_chi2_test<-function(pAcc, statistics, chapter) {
       browser()
     }
 
-    chapter$insert_table(caption = caption, table_df = tab, tags = c('perason_chi2'))
+    chapter$insert_table(caption = caption, table_df = tab, tags = c('crosstab_test', 'perason_chi2'))
 
   } else {
     cramer_v <- lsr::cramersV(mydt$iv, mydt$dv)
@@ -128,7 +128,7 @@ two_by_two_chi2_test<-function(pAcc, statistics, chapter) {
     } else {
       browser()
     }
-    chapter$insert_paragraph(msg, tags=c('pearson_chi2'))
+    chapter$insert_paragraph(msg, tags=c('crosstab_test', 'pearson_chi2'))
 
   }
   return(chapter)
@@ -217,7 +217,7 @@ two_by_two_U_test<-function(pAcc, statistics, chapter) {
   # for(i in seq(ncol(tab_df_txt))) {
   #   setattr(tab_df_txt[[i]], 'label', collabels[[i]])
   # }
-  chapter$insert_table(caption=tab_caption, table_df = tab_df_txt, tags = 'u-mww-test')
+  chapter$insert_table(caption=tab_caption, table_df = tab_df_txt, tags = c('crosstab_test', 'u-mww-test'))
   return(chapter)
 }
 
@@ -303,7 +303,7 @@ two_by_two_KW_test<-function(pAcc, statistics, chapter) {
   # for(i in seq(ncol(tab_df_txt))) {
   #   setattr(tab_df_txt[[i]], 'label', collabels[[i]])
   # }
-  chapter$insert_table(caption=tab_caption, table_df = tab_df_txt, tags = 'u-mww-test')
+  chapter$insert_table(caption=tab_caption, table_df = tab_df_txt, tags = c('crosstab_test', 'u-mww-test'))
   return(chapter)
 }
 
@@ -322,7 +322,7 @@ two_by_two_rho_test<-function(pAcc, statistics, chapter) {
     #browser()
     do_test<-function(dv, iv) {
       ans<-tryCatch(
-        broom::tidy(Hmisc::rcorr(dv, iv, type='spearman')),
+        broom::tidy(Hmisc::rcorr(dv, iv, type=c('crosstab_test', 'spearman'))),
         error=function(e) {
           data.frame(column1=NA, column2=NA, estimate=NA_real_, n=length(dv), p.value=NA_real_)
         }
@@ -354,7 +354,7 @@ two_by_two_rho_test<-function(pAcc, statistics, chapter) {
       browser()
     }
     chapter$insert_paragraph(msg)
-    chapter$insert_table(caption = attr(tab, 'caption'), table_df = tab, tags = 'spearman_test', flag_header_in_md=TRUE)
+    chapter$insert_table(caption = attr(tab, 'caption'), table_df = tab, tags = c('crosstab_test', 'spearman_test'), flag_header_in_md=TRUE)
 
   } else {
     browser()
@@ -367,7 +367,7 @@ two_by_two_rho_test<-function(pAcc, statistics, chapter) {
                     '. Uzyskano wartość statystyki korelacji ρ(', table$n-2, ') równą ',
                     danesurowe::report_single_value(table$estimate),
                     '; ', danesurowe::report_pvalue_long(table$p.value),'.\n\n')
-      chapter$insert_paragraph(msg, tags='spearman_test')
+      chapter$insert_paragraph(msg, tags=c('crosstab_test', 'spearman_test'))
     } else if(language=='EN') {
       browser()
     } else {
