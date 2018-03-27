@@ -27,12 +27,15 @@ ts_nominal_dispatch<-function(property_accessor) {
   dummies_df<-cbind(mydt %>% select(-dv), as_tibble(dummies_df)) %>% as_tibble
   if(db_obj$is_grouped()) {
     dummies_df<-group_by(dummies_df, gv, iv)
+    all_df<-dplyr::inner_join(dummies_df %>% summarise(n=n()),
+                              dummies_df %>%  summarise_at(vars(starts_with('dv_')), sum),
+                              by=c('gv', 'iv')) %>% data.table
   } else {
     dummies_df<-group_by(dummies_df, iv)
+    all_df<-dplyr::inner_join(dummies_df %>% summarise(n=n()),
+                              dummies_df %>%  summarise_at(vars(starts_with('dv_')), sum),
+                              by=c('iv')) %>% data.table
   }
-  all_df<-dplyr::inner_join(dummies_df %>% summarise(n=n()),
-                            dummies_df %>%  summarise_at(vars(starts_with('dv_')), sum),
-                            by=c('gv', 'iv')) %>% data.table
 
   for(i in dvlevels) {
     setattr(all_df[[paste0('dv_',stringr::str_pad(i,
@@ -40,16 +43,28 @@ ts_nominal_dispatch<-function(property_accessor) {
                                                   pad = "0"))]], 'label', names(dvlevels)[which.max(dvlevels==1)])
   }
 
-  tidy_df<-tidyr::gather(all_df, dv, counts, -iv, -gv, -n) %>% mutate(perc=counts/n, dv=factor(dv)) %>%
-    mutate(iv2=as.numeric(difftime(iv, lubridate::ymd(paste0(year(iv),'-01-01')), units = 'days'))/365 + year(iv)) %>% data.frame()
-
+  if(db_obj$is_grouped()) {
+    tidy_df<-tidyr::gather(all_df, dv, counts, -iv, -gv, -n) %>% mutate(perc=counts/n, dv=factor(dv)) %>%
+      mutate(iv2=as.numeric(difftime(iv, lubridate::ymd(paste0(year(iv),'-01-01')), units = 'days'))/365 + year(iv)) %>% data.frame()
+  } else {
+    tidy_df<-tidyr::gather(all_df, dv, counts, -iv, -n) %>% mutate(perc=counts/n, dv=factor(dv)) %>%
+      mutate(iv2=as.numeric(difftime(iv, lubridate::ymd(paste0(year(iv),'-01-01')), units = 'days'))/365 + year(iv)) %>% data.frame()
+  }
 
   tidy_df$dv <- plyr::revalue(tidy_df$dv,setNames(names(dvlevels),
                                                   paste0('dv_',stringr::str_pad(dvlevels,
                                                                                 width=max(nchar(dvlevels)),
                                                                                 pad = "0"))))
 
-  plot_df<-tidy_df %>% group_by(gv, dv) %>%  tidyr::nest() %>%  mutate(freqs=map(data, decompose_freqs)) %>% select(-data) %>% tidyr::unnest()
+  if(db_obj$is_grouped()) {
+    plot_df<-tidy_df %>% group_by(gv, dv) %>%  tidyr::nest() %>%  mutate(freqs=map(data, decompose_freqs)) %>% select(-data) %>% tidyr::unnest()
+    season_df<-create_season_df(mydt, date_var='iv', factor_var = 'dv', groupby = 'gv',
+                                period_value = period_value, period_unit = period_unit)
+  } else {
+    plot_df<-tidy_df %>% group_by(dv) %>%  tidyr::nest() %>%  mutate(freqs=map(data, decompose_freqs)) %>% select(-data) %>% tidyr::unnest()
+    season_df<-create_season_df(mydt, date_var='iv', factor_var = 'dv',
+                                period_value = period_value, period_unit = period_unit)
+  }
 
 
   if(period_value == '') {
@@ -58,8 +73,6 @@ ts_nominal_dispatch<-function(property_accessor) {
   if(period_unit == '') {
     period_unit='year'
   }
-  season_df<-create_season_df(mydt, date_var='iv', factor_var = 'dv', groupby = 'gv',
-                              period_value = period_value, period_unit = period_unit)
 
   return(list(plot_df=plot_df, season_df=season_df))
 }
