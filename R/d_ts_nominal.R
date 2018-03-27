@@ -24,7 +24,7 @@ ts_nominal_dispatch<-function(property_accessor) {
                               }),
                        paste0('dv_', stringr::str_pad(dvlevels, width=max(nchar(dvlevels)), pad = "0")))
 
-  dummies_df<-cbind(mydt %>% select(-dv), as_tibble(dummies_df)) %>% as_tibble %>% group_by(gv, iv)
+  dummies_df<-cbind(mydt %>% select(-dv), as_tibble(dummies_df)) %>% as_tibble
   if(db_obj$is_grouped()) {
     dummies_df<-group_by(dummies_df, gv, iv)
   } else {
