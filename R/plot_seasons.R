@@ -56,7 +56,8 @@ plot_seasons<-function(pAcc, chapter, season_df = statistics$season_df){
     mycols<-db_obj$groupvar_label()
     h<- h + facet_wrap( ~groupby )
   } else {
-    df<-season_df %>% select(groupby, small_gr, factor_var, m, m_se, tau, tau_se)
+    df<-season_df %>% select(small_gr, factor_var, m, m_se, tau, tau_se)
+    mycols<-character(0)
   }
   df <- df %>%
     mutate(m_txt = danesurowe::report_value_with_error(m*100, m_se*100),

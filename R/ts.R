@@ -1,4 +1,4 @@
-create_season_df<-function(dt, date_var, factor_var, groupby, period_value, period_unit) {
+create_season_df<-function(dt, date_var, factor_var, groupby=NULL, period_value, period_unit) {
   mydf<-make_seasonal_nominal_df(dt, date_var = date_var, factor_var = factor_var,
                                  groupby = groupby,
                                  period_value = period_value, period_unit = period_unit)
@@ -31,21 +31,34 @@ create_season_df<-function(dt, date_var, factor_var, groupby, period_value, peri
     count_df$m<-apply(sample,2,mean)
     return(count_df)
   }
-
-  a<-mydf %>% group_by(groupby, big_gr,small_gr) %>% do(calc_errors(.))
+  if(!is.null(groupby)) {
+    a<-mydf %>% group_by(groupby, big_gr,small_gr)
+  } else {
+    a<-mydf %>% group_by(big_gr,small_gr)
+  }
+  a<-a %>% do(calc_errors(.))
 
 
   #  debugonce(get_mean_sd)
   #  pr<-readRDS('tmp_nominal_seasons.rds')
   #  model<-gen_mean_sd_model()
-  pr<-a %>% group_by(groupby, small_gr, factor_var) %>% select(perc, sd, big_gr)
+  if(!is.null(groupby)) {
+    pr<-a %>% group_by(groupby, small_gr, factor_var) %>% select(perc, sd, big_gr)
+  } else {
+    pr<-a %>% group_by(small_gr, factor_var) %>% select(perc, sd, big_gr)
+  }
 
   #  saveRDS(pr, 'tmp_nominal_seasons.rds')
 
   means<-get_mean_sd_multiple(pr, gr_var='big_gr', m_var='perc', sd_var='sd')
   #  pr<-pr %>% do(get_mean_sd(.$perc, .$sd, model=model))
 
-  pr <- means %>% group_by(groupby, small_gr) %>% arrange(-as.numeric(factor_var)) %>%
+  if(!is.null(groupby)) {
+    pr <- means %>% group_by(groupby, small_gr)
+  } else {
+    pr <- means %>% group_by(small_gr)
+  }
+  pr<-pr %>% arrange(-as.numeric(factor_var)) %>%
     mutate(cum_m = cumsum(m), cil=cum_m-m_se, ciu=cum_m+m_se, cum_m_b=lag(cum_m, default=0))
   setattr(pr$small_gr, 'units', attr(mydf$small_gr, 'units'))
 
@@ -627,7 +640,14 @@ make_seasonal_nominal_df<-function(dt, date_var, factor_var, groupby,  period_va
              paste0('factor_',stringr::str_pad(i, width=max(nchar(factor_levels)), pad = "0")))
   }
 
-  tidy_df<-tidyr::gather(all_df, factor_var, counts, -big_gr, -small_gr, -groupby, -n) %>%
+  if(!is.null(groupby)) {
+    tidy_df<-tidyr::gather(all_df, factor_var, counts, -big_gr, -small_gr, -groupby, -n)
+  } else {
+    tidy_df<-tidyr::gather(all_df, factor_var, counts, -big_gr, -small_gr, -n)
+  }
+
+
+  tidy_df <- tidy_df %>%
     mutate(perc=counts/n, factor_var=factor(factor_var)) %>% data.frame()
 
 
